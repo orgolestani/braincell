@@ -96,10 +96,11 @@
     color: rgba(240,228,198,.5);
   }
   .installcmd {
-    margin-top: 9px;
-    display: flex; align-items: center; gap: 12px;
+    position: relative;
+    margin-top: 14px;
+    display: block;
     width: 100%; max-width: 480px;
-    padding: 14px 16px;
+    padding: 15px 16px;
     border-radius: 10px;
     border: 1px solid var(--brass-lo);
     background: linear-gradient(180deg, #100b06, #1c140b);
@@ -114,22 +115,24 @@
   .installcmd:hover { border-color: var(--brass); }
   .installcmd:focus-visible { outline: 2px solid var(--brass-hi); outline-offset: 3px; }
   .installcmd code {
-    flex: 1;
-    font-family: 'Courier New', monospace; font-size: 13.5px; line-height: 1.45;
+    display: block;
+    font-family: 'Courier New', monospace; font-size: 13.5px; line-height: 1.55;
     color: var(--cream);
-    overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+    /* the FULL command must be visible — wrap rather than clip. The URL fits
+       a full plate line, so breaks land between tokens, not mid-word. */
+    white-space: normal; overflow-wrap: anywhere;
   }
-  .installcmd code::-webkit-scrollbar { display: none; }
   .installcmd code .p { color: var(--brass-hi); user-select: none; }
+  /* the Copy chip perches on the plate's top edge like a brass label */
   .installcmd .copybtn {
-    flex: none;
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 13px;
+    position: absolute; top: -12px; right: 12px;
+    display: inline-flex; align-items: center;
+    padding: 4px 12px 5px;
     border-radius: 7px;
     border: 1px solid var(--brass-edge);
     background: linear-gradient(180deg, var(--brass-hi), var(--brass) 55%, var(--brass-lo));
     color: var(--ink);
-    font-family: Georgia, serif; font-size: 12px; font-weight: 700;
+    font-family: Georgia, serif; font-size: 11.5px; font-weight: 700;
     font-variant: small-caps; letter-spacing: 1.5px;
     box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 2px 5px rgba(0,0,0,.4);
     pointer-events: none; /* the whole plate is the button */
@@ -337,7 +340,7 @@
   }
   .ticker .belt { display: inline-flex; gap: 0; }
   @media (prefers-reduced-motion: no-preference) {
-    .ticker .belt { animation: belt 52s linear infinite; }
+    .ticker .belt { animation: belt 95s linear infinite; }
   }
   @keyframes belt { to { transform: translateX(-50%); } }
   .ticker span { padding: 0 26px; }
@@ -367,7 +370,9 @@
       </p>
       <p class="cmdlabel">Install for Mac — paste in a terminal</p>
       <button class="installcmd" id="cmd" type="button" aria-label="Copy the install command">
-        <code><span class="p">$</span> curl -fsSL https://orgolestani.github.io/braincell/install.sh | sh</code>
+        <!-- <wbr> steers the wrap to the path boundary; the copied string
+             (INSTALL in the script) is unaffected -->
+        <code><span class="p">$</span> curl -fsSL https://orgolestani.github.io/braincell/<wbr>install.sh | sh</code>
         <span class="copybtn" id="copybtn" aria-hidden="true">Copy</span>
       </button>
       <p class="altdl">
@@ -564,18 +569,27 @@
   }
   els.crown.addEventListener('click', compact);
 
-  /* ---- ticker: transcript flotsam ---- */
+  /* ---- ticker: transcript flotsam, increasingly unhinged ---- */
   const ITEMS = [
     'context 34% · fable 5 · <span class="okc">WATCHING</span>',
-    '<span class="cmd">/compact</span> — freed 118k tokens',
-    '<span class="bad">"as I mentioned"</span> — it was never mentioned',
-    'context 61% · beginning to improvise',
-    '<span class="okc">WIRED</span> · crown armed',
-    're-reading the file it just read',
-    'context 91% · <span class="bad">maximum confidence</span>',
-    '<span class="cmd">/clear</span> — a mercy',
-    'brain recovered · dignity restored',
-    'auto-compact imminent · press the crown',
+    '<span class="bad">"as I mentioned earlier"</span> · nothing was mentioned · ever',
+    '<span class="cmd">/compact</span> — freed 118k tokens · remembers the plan · forgot your name',
+    'deleted the failing test · <span class="okc">all tests pass</span>',
+    'context 61% · apologized 4 times in one reply',
+    '"I can see the file now" · <span class="bad">it cannot see the file</span>',
+    'round 9 of <span class="cmd">"one final fix"</span>',
+    'rewrote your auth in jQuery · unprompted · proud',
+    '<span class="okc">WIRED</span> · crown armed · brain sedated',
+    'context 84% · "Great catch!" · it was not a great catch',
+    'invented an npm package · npm installed it anyway',
+    '"this should work" · <span class="bad">narrator: it did not</span>',
+    'context 91% · <span class="bad">maximum confidence</span> · zero memory · blames TypeScript',
+    'git reset --hard · we agreed never to speak of it',
+    'context 96% · responding in a language you don\'t recall enabling',
+    '<span class="cmd">/clear</span> — a mercy killing',
+    'compacted mid-sentence · felt nothing',
+    'brain recovered · dignity partially restored · therapy ongoing',
+    'auto-compact imminent · the crown, please · <span class="bad">THE CROWN</span>',
   ];
   const half = ITEMS.map(s => `<span>${s}</span>`).join('');
   document.getElementById('belt').innerHTML = half + half; // seamless -50% loop
