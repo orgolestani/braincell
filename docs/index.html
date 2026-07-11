@@ -430,6 +430,14 @@
   'use strict';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* GoatCounter events (cookieless): copied-install is the conversion,
+     crown-compact / demo-fried measure how many actually play the demo. */
+  function track(name) {
+    if (window.goatcounter && window.goatcounter.count) {
+      window.goatcounter.count({ path: name, title: name, event: true });
+    }
+  }
+
   /* ---- bezel geometry: 300° sweep, gap at 6 o'clock (same as the app) ---- */
   const C = 170, R = 148, START = 120, SWEEP = 300;
   const pt = (deg) => [C + R * Math.cos(deg * Math.PI / 180), C + R * Math.sin(deg * Math.PI / 180)];
@@ -472,6 +480,7 @@
 
   let pct = 18;           // shown value
   let state = '';         // current state key
+  let friedTracked = false; // demo-fried event fires once per page load
   let shownPct = -1;
   let quipIdx = 0;
   let toastTimer = 0;
@@ -503,10 +512,13 @@
       els.quip.textContent = STATES[s].quips[quipIdx % STATES[s].quips.length];
       quipIdx++;
       els.hint.classList.toggle('urge', s === 'fried');
-      if (s === 'fried' && entering && !reduced) {
-        els.case.classList.remove('fried-hit');
-        void els.case.offsetWidth; // restart the wobble
-        els.case.classList.add('fried-hit');
+      if (s === 'fried' && entering) {
+        if (!friedTracked) { friedTracked = true; track('demo-fried'); }
+        if (!reduced) {
+          els.case.classList.remove('fried-hit');
+          void els.case.offsetWidth; // restart the wobble
+          els.case.classList.add('fried-hit');
+        }
       }
     }
   }
@@ -556,6 +568,7 @@
   function compact() {
     els.crown.classList.add('pressed');
     setTimeout(() => els.crown.classList.remove('pressed'), 180);
+    track('crown-compact');
     toast(COMPACT_LINES[compacts++ % COMPACT_LINES.length]);
     uFrom = pct; uTo = 14 + Math.random() * 6; uT0 = performance.now();
     if (reduced) { pct = uTo; apply(pct); mode = 'creep'; return; }
@@ -605,6 +618,7 @@
       document.execCommand('copy');
       ta.remove();
     }
+    track('copied-install');
     cmdEl.classList.add('copied');
     copyBtn.textContent = 'Copied';
     clearTimeout(copyTimer);
