@@ -25,13 +25,21 @@ trap 'rm -rf "$TMP"' EXIT
 echo "⌚ Downloading Braincell (~110MB)…"
 curl -fL --progress-bar "$URL" -o "$TMP/braincell.zip"
 
+echo "⌚ Verifying checksum…"
+EXPECTED="$(curl -fsSL "$URL.sha256" | awk '{print $1}')"
+ACTUAL="$(shasum -a 256 "$TMP/braincell.zip" | awk '{print $1}')"
+if [ -z "$EXPECTED" ] || [ "$EXPECTED" != "$ACTUAL" ]; then
+  echo "Checksum mismatch — refusing to install." >&2
+  echo "  expected: ${EXPECTED:-<none>}" >&2
+  echo "  got:      $ACTUAL" >&2
+  exit 1
+fi
+echo "   sha256 ok: $ACTUAL"
+
 echo "⌚ Installing to $DEST…"
 ditto -xk "$TMP/braincell.zip" "$TMP/unpacked"
 rm -rf "$DEST/Braincell.app"
 mv "$TMP/unpacked/Braincell.app" "$DEST/Braincell.app"
-
-# belt & braces: if anything upstream ever adds a quarantine flag, clear it
-xattr -cr "$DEST/Braincell.app" 2>/dev/null || true
 
 open "$DEST/Braincell.app"
 echo "⌚ Braincell is on your desk. Mind the context."
