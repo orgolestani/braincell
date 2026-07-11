@@ -1,0 +1,1372 @@
+/*
+ * Braincell — round pocket-watch companion.
+ *
+ * The window is frameless + transparent: only the watch is visible. All
+ * layout is fixed-size around a 240px dial in a 280×336 window, crown at 12.
+ * Namespaces: .bw-* watch chrome; .bm-* action hooks shared with renderer.ts
+ * delegation (bm-compact / bm-flip / bm-close / bm-clear / bm-reconnect /
+ * bm-shimtoggle / bm-lidwire / bm-lidopen / [data-session-id]).
+ */
+
+:root {
+  /* brass / cream / ink palette */
+  --brass: #b0883c;
+  --brass-hi: #e9c675;
+  --brass-lo: #7c5c22;
+  --brass-edge: #55400f;
+  --dial: #f3e7cb;
+  --dial-lo: #e2d2ac;
+  --ink: #2c2216;
+  --ink-soft: rgba(44, 34, 22, 0.55);
+  --paper: #ece0c2;
+
+  /* heat (context pressure) */
+  --ok: #5d7a3f;
+  --warn: #c08a2d;
+  --danger: #a83c26;
+
+  /* activity jewel */
+  --live: #43a047;
+  --recent: #c9a53a;
+  --stale: #6b6156;
+
+  --dial-size: 240px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--ink);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* the watch sits at the bottom; the space above is steam headroom */
+.stage,
+#hero {
+  width: 100%;
+  height: 100%;
+}
+
+#hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------- device */
+
+.bw {
+  position: relative;
+  width: 280px;
+  height: 336px;
+  -webkit-app-region: drag; /* grab the watch anywhere to move it */
+}
+
+/* every control opts out of the drag region */
+.bw button,
+.bw-slots,
+#toast {
+  -webkit-app-region: no-drag;
+}
+
+/* ------------------------------------------------------------ bow + crown */
+
+.bw-bow {
+  /* clickable (dev pressure preview) — drag regions swallow clicks */
+  -webkit-app-region: no-drag;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 58px;
+  height: 58px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 7px solid var(--brass-lo);
+  box-shadow:
+    inset 0 1px 0 var(--brass-hi),
+    0 1px 2px rgba(0, 0, 0, 0.45);
+  background: transparent;
+}
+
+/* The compact crown — the device's primary control, in real-stopwatch
+   language: a bulged onion cap with deep coin-edge knurling, seated on a
+   machined collar and a stem that vanishes behind the case rim. A press
+   sinks the whole assembly under the rim (z 1 < case z 2, deliberately). */
+.bw-crown {
+  position: absolute;
+  left: 50%;
+  top: 17px;
+  width: 42px;
+  height: 35px;
+  transform: translateX(-50%);
+  z-index: 1;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  transition: transform 0.12s ease;
+}
+
+/* stem — narrowest, disappears into the case tube. A real element, NOT
+   ::after: the tooltip system owns the button's pseudos. */
+.bw-crown-stem {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 18px;
+  height: 14px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, var(--brass-lo), var(--brass) 30%, var(--brass-hi) 50%, var(--brass) 70%, var(--brass-lo));
+  border-left: 1px solid var(--brass-edge);
+  border-right: 1px solid var(--brass-edge);
+}
+
+/* collar — the machined ring where the cap meets the stem tube */
+.bw-crown-collar {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 30px;
+  height: 7px;
+  transform: translateX(-50%);
+  z-index: 1;
+  border-radius: 2px;
+  border: 1px solid var(--brass-edge);
+  background: linear-gradient(90deg, var(--brass-lo), var(--brass) 25%, var(--brass-hi) 50%, var(--brass) 75%, var(--brass-lo));
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35);
+}
+
+.bw-crown-cap {
+  position: relative;
+  z-index: 2; /* cap over collar over stem */
+  display: block;
+  width: 100%;
+  height: 23px;
+  /* onion profile: bulged sides, tighter at the base */
+  border-radius: 40% 40% 22% 22% / 56% 56% 16% 16%;
+  background:
+    /* dome sheen at the crest */
+    radial-gradient(120% 70% at 50% -10%, rgba(255, 255, 255, 0.6), transparent 55%),
+    /* mid-bulge glint (cylinder curvature) */
+    radial-gradient(90% 45% at 50% 46%, rgba(255, 255, 255, 0.22), transparent 70%),
+    /* deep coin-edge knurling */
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.38) 0 1px,
+      rgba(255, 255, 255, 0.3) 1px 2.5px,
+      transparent 2.5px 5px
+    ),
+    linear-gradient(180deg, var(--brass-hi), var(--brass) 55%, var(--brass-lo));
+  border: 1px solid var(--brass-edge);
+  /* cylinder shading: bright crest, dark underside, rolled sides */
+  box-shadow:
+    inset 0 2px 2px rgba(255, 255, 255, 0.5),
+    inset 0 -4px 4px -2px rgba(0, 0, 0, 0.4),
+    inset 7px 0 6px -5px rgba(0, 0, 0, 0.38),
+    inset -7px 0 6px -5px rgba(0, 0, 0, 0.38),
+    0 2px 3px rgba(0, 0, 0, 0.35);
+}
+
+.bw-crown:hover .bw-crown-cap {
+  filter: brightness(1.08);
+}
+
+/* press = /compact: the crown sinks behind the case rim */
+.bw-crown:active,
+.bw-crown.pulling {
+  transform: translateX(-50%) translateY(5px);
+}
+
+/* --------------------------------------------------------------- tooltips */
+
+/* Paper-tag tooltips for the nameless hardware (crown / pushers): a little
+   ink-on-paper label with a brass-edged pin, shown after a beat on hover. */
+[data-tip] {
+  position: relative;
+}
+
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  padding: 3px 8px 4px;
+  border: 1px solid var(--brass-edge);
+  border-radius: 3px;
+  background: linear-gradient(180deg, #f6ecd2, var(--paper));
+  color: var(--ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 9px;
+  font-variant: small-caps;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 2px 5px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+/* the pin: a brass-edged paper diamond pointing back at the control */
+[data-tip]::before {
+  content: '';
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  transform: translateX(-50%) rotate(45deg);
+  z-index: 31;
+  background: #f6ecd2;
+  border-top: 1px solid var(--brass-edge);
+  border-left: 1px solid var(--brass-edge);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+[data-tip]:hover::after,
+[data-tip]:hover::before {
+  opacity: 1;
+  transition-delay: 0.4s; /* a beat, so pass-over hovers don't flicker tags */
+}
+
+/* edge pushers pin the tag inward so it stays inside the 280px window */
+[data-tip][data-tip-align='left']::after {
+  left: 0;
+  transform: none;
+}
+
+[data-tip][data-tip-align='right']::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+/* crown shows its tag ABOVE (in the steam headroom) — below the crown the
+   tag would spatially overlap the case, which paints over the crown (z 2>1) */
+[data-tip][data-tip-pos='top']::after {
+  top: auto;
+  bottom: calc(100% + 7px);
+}
+
+[data-tip][data-tip-pos='top']::before {
+  top: auto;
+  bottom: calc(100% + 4px);
+  border-top: none;
+  border-left: none;
+  border-bottom: 1px solid var(--brass-edge);
+  border-right: 1px solid var(--brass-edge);
+}
+
+/* ---------------------------------------------------------------- pushers */
+
+/* Real chronograph language: each pusher is a small piston — a rounded-end
+   cylinder protruding RADIALLY from the band, the crown's little sibling.
+   The wrapper stays unrotated so the paper-tag tooltip reads level; the
+   piston inside rotates to its clock position (--a) and its glyph counter-
+   rotates to stay upright. The dark seam at the piston root is where it
+   enters the case; pressing slides it inward along its own axis. */
+.bw-pusher-wrap {
+  position: absolute;
+  width: 24px;
+  height: 19px;
+  z-index: 3;
+}
+
+.bw-pusher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 1px solid var(--brass-edge);
+  border-radius: 9px 9px 3px 3px;
+  background:
+    radial-gradient(130% 80% at 50% -12%, rgba(255, 255, 255, 0.45), transparent 60%),
+    linear-gradient(
+      90deg,
+      var(--brass-lo),
+      var(--brass) 28%,
+      var(--brass-hi) 50%,
+      var(--brass) 72%,
+      var(--brass-lo)
+    );
+  box-shadow:
+    inset 0 -4px 4px -3px rgba(0, 0, 0, 0.55),
+    inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  color: var(--ink);
+  line-height: 1;
+  cursor: pointer;
+  transform: rotate(var(--a, 0deg));
+  transition:
+    filter 0.12s ease,
+    transform 0.12s ease;
+}
+
+/* glyphs read upright regardless of the piston's clock position */
+.bw-pusher span {
+  display: block;
+  transform: rotate(calc(-1 * var(--a, 0deg)));
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+.bw-pusher:hover {
+  filter: brightness(1.08);
+}
+
+/* press = the piston slides into the case along its own axis */
+.bw-pusher:active {
+  transform: rotate(var(--a, 0deg)) translateY(2.5px);
+}
+
+.bw-pw-close {
+  left: 33px;
+  top: 72px;
+  --a: -48deg;
+}
+
+.bw-pw-flip {
+  right: 33px;
+  top: 72px;
+  --a: 48deg;
+}
+
+.bw-pw-mini {
+  right: 10px;
+  top: 107px;
+  --a: 66deg;
+}
+
+.bw-pw-mini .bw-pusher span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------ case + flip */
+
+.bw-case {
+  position: absolute;
+  left: 20px;
+  top: 48px;
+  width: var(--dial-size);
+  height: var(--dial-size);
+  z-index: 2;
+  perspective: 800px;
+}
+
+.bw-flipper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bw-flipper.flipped {
+  transform: rotateY(180deg);
+}
+
+.bw-side {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: 6px solid transparent;
+  /* brass rim: dial on padding-box, brass gradient on border-box */
+  box-shadow:
+    0 0 0 1px var(--brass-edge),
+    0 6px 18px rgba(0, 0, 0, 0.45),
+    inset 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.bw-front {
+  background:
+    radial-gradient(circle at 50% 32%, #fbf3dd, var(--dial) 55%, var(--dial-lo) 100%)
+      padding-box,
+    linear-gradient(160deg, var(--brass-hi), var(--brass) 40%, var(--brass-lo)) border-box;
+}
+
+.bw-back {
+  transform: rotateY(180deg);
+  background:
+    radial-gradient(circle at 50% 35%, #cba75a, var(--brass) 55%, var(--brass-lo) 100%)
+      padding-box,
+    linear-gradient(160deg, var(--brass-hi), var(--brass) 40%, var(--brass-lo)) border-box;
+}
+
+/* --------------------------------------------------------- hunter-case lid */
+
+/* covers the face until auto-wire onboarding resolves; hinge at 9 o'clock */
+.bw-lid {
+  position: absolute;
+  inset: 0; /* exactly the 240px .bw-case footprint */
+  z-index: 5; /* above .bw-flipper within the case */
+  border-radius: 50%;
+  border: 6px solid transparent; /* same rim recipe as .bw-side/.bw-back */
+  background:
+    radial-gradient(circle, transparent 62%, rgba(0, 0, 0, 0.12) 63%, transparent 64%),
+    radial-gradient(circle at 50% 35%, #cba75a, var(--brass) 55%, var(--brass-lo) 100%)
+      padding-box,
+    linear-gradient(160deg, var(--brass-hi), var(--brass) 40%, var(--brass-lo)) border-box;
+  box-shadow:
+    0 0 0 1px var(--brass-edge),
+    0 6px 18px rgba(0, 0, 0, 0.45),
+    inset 0 2px 6px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  /* No resting transform: a translateZ layer gets perspective-scaled a hair
+     (~1.0025) and blurs the engraving. Flat at rest = crisp text; the 3D
+     transform exists only during .opening, where blur can't be read anyway. */
+  transform-origin: left center;
+  transition:
+    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease-out 0.4s;
+}
+
+/* swings AWAY from the viewer — perspective foreshortens it inward, so it
+   never pokes past the window's left edge (toward-viewer magnified and
+   clipped there) — then fades */
+.bw-lid.opening {
+  transform: rotateY(100deg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bw-lid-primary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--brass-edge);
+  background: linear-gradient(180deg, var(--paper), #ddcda6);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-variant: small-caps;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.bw-lid-primary:hover {
+  filter: brightness(1.06);
+}
+
+.bw-lid-primary:active {
+  transform: translateY(1px);
+}
+
+.bw-lid-bolt {
+  color: #6a4a12;
+}
+
+.bw-lid-secondary {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 9.5px;
+  font-style: italic;
+  color: rgba(44, 34, 22, 0.7);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.bw-lid-fine {
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: rgba(44, 34, 22, 0.5);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* ------------------------------------------------------------------ face */
+
+.bw-face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.bw-bezel {
+  position: absolute;
+  /* compensate for the 6px case border: viewBox spans the full 240 dial */
+  inset: -6px;
+  width: var(--dial-size);
+  height: var(--dial-size);
+  pointer-events: none;
+}
+
+.bw-meter-track {
+  fill: none;
+  stroke: rgba(44, 34, 22, 0.18);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.bw-meter-fill {
+  fill: none;
+  stroke: var(--ok);
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke 0.4s ease;
+}
+
+.bw-face[data-heat='warn'] .bw-meter-fill {
+  stroke: var(--warn);
+}
+
+.bw-face[data-heat='danger'] .bw-meter-fill {
+  stroke: var(--danger);
+  filter: drop-shadow(0 0 3px rgba(168, 60, 38, 0.6));
+}
+
+.bw-tick {
+  stroke: rgba(44, 34, 22, 0.35);
+  stroke-width: 1;
+}
+
+.bw-tick.major {
+  stroke: rgba(44, 34, 22, 0.55);
+  stroke-width: 1.6;
+}
+
+/* activity jewel at 12 */
+.bw-jewel {
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  width: 11px;
+  height: 11px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 1px solid var(--brass-edge);
+  background: radial-gradient(circle at 35% 30%, #fff6, transparent 60%), var(--stale);
+}
+
+.bw-jewel[data-activity='recent'] {
+  background: radial-gradient(circle at 35% 30%, #fff8, transparent 60%), var(--recent);
+}
+
+.bw-jewel[data-activity='live'] {
+  background: radial-gradient(circle at 35% 30%, #fffa, transparent 60%), var(--live);
+  animation: bw-jewel-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes bw-jewel-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 2px 1px rgba(67, 160, 71, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 6px 3px rgba(67, 160, 71, 0.75);
+  }
+}
+
+/* porthole — mascot slot (3D mascot mounts in [data-mascot-slot] later) */
+.bw-porthole {
+  position: absolute;
+  left: 50%;
+  top: 38px;
+  width: 128px;
+  height: 128px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 5px solid var(--brass-lo);
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.35);
+  background: radial-gradient(circle at 50% 40%, #3d3428, #241d13 75%);
+  overflow: hidden;
+}
+
+.bw-mascot {
+  width: 100%;
+  height: 100%;
+}
+
+/* --------------------------------------------- mascot (webm state loops) */
+
+.ms-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* all state loops stacked; only the active one shows (no reload flash) */
+.ms-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+.ms-video.on {
+  display: block;
+}
+
+.bw-mascot-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(243, 231, 203, 0.4);
+  font-style: italic;
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+
+/* context % aperture — date-window style */
+.bw-aperture {
+  position: absolute;
+  left: 50%;
+  top: 176px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.bw-aperture-label {
+  font-size: 8px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.bw-aperture-value {
+  min-width: 52px;
+  padding: 2px 7px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--dial);
+  background: linear-gradient(180deg, #241d13, #3a2f1f);
+  border: 1px solid var(--brass-lo);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* maker's mark — the session model, printed at 6 o'clock like "swiss made" */
+.bw-model {
+  position: absolute;
+  left: 50%;
+  top: 212px;
+  transform: translateX(-50%);
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+  font-variant: small-caps;
+  letter-spacing: 3px;
+  color: var(--ink-soft);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* one-shot pulse when the followed session switches model mid-run */
+.bw-model-flash {
+  animation: bw-model-flash 0.9s ease-out;
+}
+
+@keyframes bw-model-flash {
+  0% {
+    color: var(--brass-lo);
+    transform: translateX(-50%) scale(1.18);
+    text-shadow: 0 0 6px rgba(176, 136, 60, 0.85);
+  }
+  100% {
+    color: var(--ink-soft);
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* error jewel — dark until fresh errors exist */
+.bw-errjewel {
+  position: absolute;
+  left: calc(50% + 48px);
+  top: 190px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--brass-edge);
+  background: radial-gradient(circle at 35% 30%, #4a2320, #2a120f 70%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 10px;
+  color: #ffd9d0;
+}
+
+.bw-errjewel[data-lit='true'] {
+  background: radial-gradient(circle at 35% 30%, #e06248, #a83c26 70%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.35),
+    0 0 6px 2px rgba(168, 60, 38, 0.55);
+}
+
+/* -------------------------------------------------------------- caseback */
+
+.bw-caseback {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* circle narrows fast near the bottom — keep wide rows high, pad the foot */
+  padding: 14px 0 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  /* engraved circles */
+  background:
+    radial-gradient(circle, transparent 62%, rgba(0, 0, 0, 0.12) 63%, transparent 64%),
+    radial-gradient(circle, transparent 70%, rgba(255, 255, 255, 0.18) 71%, transparent 72%);
+}
+
+.bw-back-title {
+  font-size: 12px;
+  font-variant: small-caps;
+  letter-spacing: 4px;
+  color: rgba(44, 34, 22, 0.75);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.bw-back-engraving {
+  font-size: 10px;
+  font-style: italic;
+  letter-spacing: 1px;
+  color: rgba(44, 34, 22, 0.6);
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* engraved section divider above the session list */
+.bw-back-section {
+  margin-top: 3px;
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(44, 34, 22, 0.65);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.bw-back-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  color: rgba(44, 34, 22, 0.65);
+}
+
+.bw-back-hint code {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+}
+
+/* session slots — thin paper strips screwed onto the brass */
+.bw-slots {
+  width: 180px;
+  max-height: 104px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  scrollbar-width: thin;
+}
+
+.bw-slots::-webkit-scrollbar {
+  width: 4px;
+}
+
+.bw-slots::-webkit-scrollbar-thumb {
+  background: var(--brass-lo);
+  border-radius: 2px;
+}
+
+.bw-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px 6px;
+  border: 1px solid rgba(85, 64, 15, 0.5);
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--paper), #ddcda6);
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.bw-slot:hover {
+  filter: brightness(1.05);
+}
+
+.bw-slot.selected {
+  outline: 2px solid var(--brass-edge);
+  outline-offset: -2px;
+}
+
+.bw-slot-follow {
+  justify-content: space-between;
+  font-variant: small-caps;
+  letter-spacing: 1px;
+}
+
+.bw-slot-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.bw-slot-chip {
+  padding: 0 4px;
+  border-radius: 2px;
+  border: 1px solid var(--brass-edge);
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass));
+  font-size: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.bw-slot-ago {
+  font-size: 9px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.bw-slot-bar {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(44, 34, 22, 0.15);
+  overflow: hidden;
+}
+
+.bw-slot-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--brass-lo);
+}
+
+.bw-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--stale);
+}
+
+.bw-dot[data-activity='recent'] {
+  background: var(--recent);
+}
+
+.bw-dot[data-activity='live'] {
+  background: var(--live);
+  animation: bw-dot-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes bw-dot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(67, 160, 71, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 4px 2px rgba(67, 160, 71, 0.6);
+  }
+}
+
+/* fork escape hatch */
+.bw-fork {
+  padding: 2px 8px;
+  border-radius: 9px;
+  border: 1px solid var(--brass-edge);
+  background: linear-gradient(180deg, var(--paper), #ddcda6);
+  font-family: inherit;
+  font-size: 9px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.bw-fork:hover {
+  filter: brightness(1.06);
+}
+
+/* clear + shim row */
+.bw-back-row {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bw-clearbtn {
+  padding: 3px 9px;
+  border-radius: 10px;
+  border: 1px solid var(--brass-edge);
+  background: linear-gradient(180deg, #c9584a, var(--danger));
+  color: #ffe9e2;
+  font-family: inherit;
+  font-variant: small-caps;
+  letter-spacing: 1.5px;
+  font-size: 10px;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.bw-clearbtn.armed {
+  animation: bw-armed 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes bw-armed {
+  from {
+    box-shadow: 0 0 2px 1px rgba(168, 60, 38, 0.5);
+  }
+  to {
+    box-shadow: 0 0 8px 3px rgba(168, 60, 38, 0.85);
+  }
+}
+
+.bw-shim {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 10px;
+  border: 1px solid var(--brass-edge);
+  background: linear-gradient(180deg, var(--paper), #ddcda6);
+  font-family: inherit;
+  font-size: 9px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.bw-shim-lamp {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--stale);
+}
+
+.bw-shim[data-state='on'] .bw-shim-lamp {
+  background: var(--live);
+  box-shadow: 0 0 3px 1px rgba(67, 160, 71, 0.6);
+}
+
+.bw-shim[data-state='repair'] .bw-shim-lamp {
+  background: var(--warn);
+  box-shadow: 0 0 3px 1px rgba(192, 138, 45, 0.6);
+}
+
+.bw-shim-state {
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-size: 8px;
+}
+
+/* ------------------------------------------------- context pressure drama */
+
+/* warn (≥60%): the machine runs hot — steady amber halo on the rim */
+.bw[data-heat='warn'] .bw-front {
+  box-shadow:
+    0 0 0 1px var(--brass-edge),
+    0 6px 18px rgba(0, 0, 0, 0.45),
+    0 0 10px 2px rgba(192, 138, 45, 0.4),
+    inset 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.bw[data-heat='warn'] .bw-aperture-value {
+  color: #f2c96a;
+}
+
+/* danger (≥85%): red pulsing rim, rattling case, steam from the crown */
+.bw[data-heat='danger'] .bw-front {
+  animation: bw-overheat 1.3s ease-in-out infinite alternate;
+}
+
+@keyframes bw-overheat {
+  from {
+    box-shadow:
+      0 0 0 1px var(--brass-edge),
+      0 6px 18px rgba(0, 0, 0, 0.45),
+      0 0 8px 2px rgba(168, 60, 38, 0.35),
+      inset 0 2px 6px rgba(0, 0, 0, 0.25);
+  }
+
+  to {
+    box-shadow:
+      0 0 0 1px var(--brass-edge),
+      0 6px 18px rgba(0, 0, 0, 0.45),
+      0 0 20px 7px rgba(168, 60, 38, 0.75),
+      inset 0 2px 6px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.bw[data-heat='danger'] .bw-aperture-value {
+  color: #ffb3a3;
+  animation: bw-redline 1.3s ease-in-out infinite alternate;
+}
+
+@keyframes bw-redline {
+  from {
+    text-shadow: 0 0 2px rgba(224, 98, 72, 0.4);
+  }
+
+  to {
+    text-shadow: 0 0 7px rgba(224, 98, 72, 0.95);
+  }
+}
+
+/* rattle: a short shake burst every ~3s, not a constant buzz */
+.bw[data-heat='danger'] {
+  animation: bw-rattle 3s ease-in-out infinite;
+}
+
+@keyframes bw-rattle {
+  0%,
+  14%,
+  100% {
+    transform: none;
+  }
+
+  2% {
+    transform: translate(-1px, 0) rotate(-0.5deg);
+  }
+
+  4% {
+    transform: translate(1px, 1px) rotate(0.5deg);
+  }
+
+  6% {
+    transform: translate(-1px, 1px) rotate(-0.4deg);
+  }
+
+  8% {
+    transform: translate(1px, -1px) rotate(0.4deg);
+  }
+
+  10% {
+    transform: translate(-1px, 0) rotate(-0.3deg);
+  }
+
+  12% {
+    transform: translate(1px, 0) rotate(0.2deg);
+  }
+}
+
+/* steam vents behind the crown */
+.bw-steam {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  width: 2px;
+  height: 46px;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+
+.bw[data-heat='danger'] .bw-steam {
+  display: block;
+}
+
+.bw-steam span {
+  position: absolute;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(246, 242, 232, 0.95);
+  filter: blur(2.5px);
+  opacity: 0;
+  animation: bw-steam-rise 2.4s ease-out infinite;
+}
+
+.bw-steam span:nth-child(1) {
+  left: -20px;
+  animation-duration: 1.8s;
+}
+
+.bw-steam span:nth-child(2) {
+  left: -4px;
+  animation-delay: 0.5s;
+  animation-duration: 2.3s;
+}
+
+.bw-steam span:nth-child(3) {
+  left: 13px;
+  animation-delay: 0.9s;
+  animation-duration: 1.9s;
+}
+
+.bw-steam span:nth-child(4) {
+  left: -13px;
+  animation-delay: 1.2s;
+  animation-duration: 2.1s;
+  width: 18px;
+  height: 18px;
+}
+
+.bw-steam span:nth-child(5) {
+  left: 5px;
+  animation-delay: 1.6s;
+  animation-duration: 2.5s;
+  width: 18px;
+  height: 18px;
+}
+
+.bw-steam span:nth-child(6) {
+  left: -28px;
+  animation-delay: 0.2s;
+  animation-duration: 2.7s;
+  width: 11px;
+  height: 11px;
+}
+
+@keyframes bw-steam-rise {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 0.95;
+  }
+
+  55% {
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateY(-52px) scale(3);
+    opacity: 0;
+  }
+}
+
+/* ----------------------------------------------------------------- toast */
+
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 58px; /* on the lower dial, above the bezel gap */
+  transform: translateX(-50%);
+  max-width: 200px;
+  padding: 5px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--brass-edge);
+  background: rgba(44, 34, 22, 0.92);
+  color: var(--dial);
+  font-size: 10px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 10;
+}
+
+#toast.show {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------- fob */
+
+/* the minimized capsule — the watch's chain fob */
+.bf {
+  -webkit-app-region: drag; /* grab anywhere to move, like the watch */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 216px;
+  height: 40px;
+  margin-bottom: 8px;
+  padding: 0 12px;
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background:
+    radial-gradient(circle at 50% 30%, #cba75a, var(--brass) 55%, var(--brass-lo) 100%)
+      padding-box,
+    linear-gradient(160deg, var(--brass-hi), var(--brass) 40%, var(--brass-lo)) border-box;
+  box-shadow:
+    0 0 0 1px var(--brass-edge),
+    0 4px 12px rgba(0, 0, 0, 0.45),
+    inset 0 1px 3px rgba(255, 255, 255, 0.25);
+}
+
+.bf button {
+  -webkit-app-region: no-drag;
+}
+
+/* linear context gauge — the meter, flattened into the capsule */
+.bf-gauge {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--brass-edge);
+  background: linear-gradient(180deg, #241d13, #3a2f1f);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.bf-fill {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+  transition:
+    width 0.4s ease,
+    background 0.4s ease;
+}
+
+.bf[data-heat='warn'] .bf-fill {
+  background: var(--warn);
+}
+
+.bf[data-heat='danger'] .bf-fill {
+  background: var(--danger);
+  box-shadow: 0 0 5px rgba(168, 60, 38, 0.8);
+}
+
+.bf-pct {
+  min-width: 34px;
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--dial);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+/* the fob's compact crown — same knurled language as the watch crown */
+.bf-crown {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--brass-edge);
+  background:
+    radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.5), transparent 55%),
+    repeating-conic-gradient(rgba(0, 0, 0, 0.25) 0deg 8deg, rgba(255, 255, 255, 0.18) 8deg 16deg),
+    linear-gradient(180deg, var(--brass-hi), var(--brass) 55%, var(--brass-lo));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.bf-crown:hover {
+  filter: brightness(1.08);
+}
+
+.bf-crown:active,
+.bf-crown.pulling {
+  transform: scale(0.88);
+}
+
+.bf-expand {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 12px;
+  color: rgba(44, 34, 22, 0.75);
+  cursor: pointer;
+}
+
+.bf-expand:hover {
+  color: var(--ink);
+}
+
+/* fob window is short — center the capsule, tuck the toast over it */
+body.fob #hero {
+  align-items: center;
+}
+
+body.fob #toast {
+  bottom: 4px;
+  font-size: 9px;
+  padding: 3px 9px;
+}
+
+/* ----------------------------------------------------------------- misc */
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 30px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--dial);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-flipper,
+  .bw-lid {
+    /* lid disappears instantly at the timeout — the open sequence is
+       timeout-driven, not transitionend-driven, precisely so this works */
+    transition: none;
+  }
+
+  .bw-jewel[data-activity='live'],
+  .bw-dot[data-activity='live'],
+  .bw-clearbtn.armed,
+  .bw[data-heat='danger'],
+  .bw[data-heat='danger'] .bw-aperture-value,
+  .bw-steam span {
+    animation: none;
+  }
+
+  /* keep a static red halo so danger still reads without motion */
+  .bw[data-heat='danger'] .bw-front {
+    animation: none;
+    box-shadow:
+      0 0 0 1px var(--brass-edge),
+      0 6px 18px rgba(0, 0, 0, 0.45),
+      0 0 14px 5px rgba(168, 60, 38, 0.6),
+      inset 0 2px 6px rgba(0, 0, 0, 0.25);
+  }
+
+  .bw-crown,
+  .bw-pusher,
+  #toast {
+    transition: none;
+  }
+}
