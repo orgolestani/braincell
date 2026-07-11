@@ -24,12 +24,22 @@
 
 ## Download & install (macOS)
 
+```sh
+curl -fsSL https://orgolestani.github.io/braincell/install.sh | sh
+```
+
+Downloads the latest release into `/Applications` and opens it. Terminal downloads carry no quarantine flag, so this path never hits Gatekeeper's "damaged" / "could not verify" dialogs. ([Read the script](docs/install.sh) — it's 40 lines.)
+
+<details>
+<summary>Manual install</summary>
+
 1. Grab the latest `Braincell-darwin-arm64-<version>.zip` from [Releases](../../releases).
 2. Unzip, drag **Braincell.app** to Applications.
-3. First launch: the build is not notarized yet, so macOS will claim the app **“is damaged and can’t be opened.”** It isn’t — that’s Gatekeeper’s message for unsigned downloads (right-click → Open does *not* bypass it). Clear the quarantine flag once, then open normally:
+3. First launch: the build is not notarized yet, so macOS will claim the app **“is damaged”** or **“could not be verified.”** It isn’t — that’s Gatekeeper on unsigned browser downloads (right-click → Open does *not* reliably bypass it). Clear the quarantine flag once, then open normally:
    ```sh
    xattr -cr /Applications/Braincell.app
    ```
+</details>
 
 Requirements: Apple Silicon Mac (build from source for Intel), [Claude Code](https://claude.com/claude-code), and Node.js on your PATH (only needed for wired mode).
 

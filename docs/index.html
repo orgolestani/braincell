@@ -89,24 +89,57 @@
   }
   @media (max-width: 880px) { .sub { margin-inline: auto; } }
 
-  .cta {
+  /* install command — a brass-framed terminal plate; click anywhere to copy */
+  .cmdlabel {
     margin-top: 30px;
-    display: inline-flex; align-items: center; gap: 12px;
-    padding: 15px 30px; border-radius: 13px;
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(240,228,198,.5);
+  }
+  .installcmd {
+    margin-top: 9px;
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; max-width: 480px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--brass-lo);
+    background: linear-gradient(180deg, #100b06, #1c140b);
+    box-shadow:
+      inset 0 2px 8px rgba(0,0,0,.7),
+      0 1px 0 rgba(233,198,117,.18),
+      0 0 34px rgba(233,198,117,.08);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color .15s ease;
+  }
+  .installcmd:hover { border-color: var(--brass); }
+  .installcmd:focus-visible { outline: 2px solid var(--brass-hi); outline-offset: 3px; }
+  .installcmd code {
+    flex: 1;
+    font-family: 'Courier New', monospace; font-size: 13.5px; line-height: 1.45;
+    color: var(--cream);
+    overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+  }
+  .installcmd code::-webkit-scrollbar { display: none; }
+  .installcmd code .p { color: var(--brass-hi); user-select: none; }
+  .installcmd .copybtn {
+    flex: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 13px;
+    border-radius: 7px;
     border: 1px solid var(--brass-edge);
     background: linear-gradient(180deg, var(--brass-hi), var(--brass) 55%, var(--brass-lo));
-    color: var(--ink); text-decoration: none;
-    font-size: 16.5px; font-weight: 700; font-variant: small-caps; letter-spacing: 1.5px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 4px 14px rgba(0,0,0,.5), 0 0 34px rgba(233,198,117,.14);
-    transition: filter .15s ease, transform .15s ease;
-    cursor: pointer;
+    color: var(--ink);
+    font-family: Georgia, serif; font-size: 12px; font-weight: 700;
+    font-variant: small-caps; letter-spacing: 1.5px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 2px 5px rgba(0,0,0,.4);
+    pointer-events: none; /* the whole plate is the button */
+    transition: filter .15s ease;
   }
-  .cta:hover { filter: brightness(1.08); }
-  .cta:active { transform: translateY(1px); }
-  .cta:focus-visible { outline: 2px solid var(--brass-hi); outline-offset: 3px; }
-  .cta .wicon { width: 20px; height: 20px; }
-  .cta small { display: block; font-weight: 400; font-variant: normal; letter-spacing: .4px; font-size: 11.5px; color: rgba(44,34,22,.75); }
-  .cta > div { text-align: left; line-height: 1.25; }
+  .installcmd:hover .copybtn { filter: brightness(1.08); }
+  .installcmd.copied .copybtn { filter: none; background: linear-gradient(180deg, #8faf6a, var(--ok)); color: #f6f0dd; }
+  @media (max-width: 880px) { .installcmd { margin-inline: auto; } .cmdlabel { text-align: center; } }
+  .altdl { margin-top: 12px; font-size: 12.5px; color: var(--cream-soft); }
+  .altdl a { color: var(--brass-hi); }
 
   .reqs {
     margin-top: 20px; font-size: 12.5px; line-height: 1.7; color: var(--cream-soft);
@@ -308,7 +341,7 @@
   }
   @keyframes belt { to { transform: translateX(-50%); } }
   .ticker span { padding: 0 26px; }
-  .ticker .cmd { color: var(--brass-hi); }
+  .ticker .installcmd { color: var(--brass-hi); }
   .ticker .bad { color: #c96a52; }
   .ticker .okc { color: #8faf6a; }
 </style>
@@ -332,22 +365,21 @@
         context pressure, <strong>visibly loses its mind</strong> as the window fills, and gives
         you one brass crown to <code>/compact</code> — before the answers turn confidently useless.
       </p>
-      <!-- NOTE: each release must include a stable-named alias asset
-           (Braincell-macOS-arm64.zip) for this latest-download link to work -->
-      <a class="cta" href="https://github.com/orgolestani/braincell/releases/latest/download/Braincell-macOS-arm64.zip">
-        <svg class="wicon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="12" cy="13" r="6.4" fill="none" stroke="currentColor" stroke-width="1.6"/>
-          <path d="M9.4 4.2h5.2M12 4.2V2.4M12 13V9.4M12 13h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
-        <div>
-          Download for Mac
-          <small>macOS · Apple Silicon · free &amp; open source</small>
-        </div>
-      </a>
+      <p class="cmdlabel">Install for Mac — paste in a terminal</p>
+      <button class="installcmd" id="cmd" type="button" aria-label="Copy the install command">
+        <code><span class="p">$</span> curl -fsSL https://orgolestani.github.io/braincell/install.sh | sh</code>
+        <span class="copybtn" id="copybtn" aria-hidden="true">Copy</span>
+      </button>
+      <p class="altdl">
+        macOS · Apple Silicon · free &amp; open source ·
+        <!-- NOTE: each release must include the stable-named alias asset
+             (Braincell-macOS-arm64.zip) for this latest-download link to work -->
+        or <a href="https://github.com/orgolestani/braincell/releases/latest/download/Braincell-macOS-arm64.zip">download the .zip</a>
+      </p>
       <p class="reqs">
         needs <a href="https://claude.com/claude-code">Claude Code</a> · reads local transcripts · nothing leaves your machine
       </p>
-      <p class="fineprint">unsigned build — macOS will call it “damaged”; it isn’t. Run <code>xattr -cr /Applications/Braincell.app</code> once, then open normally</p>
+      <p class="fineprint">the command dodges Gatekeeper’s “damaged app” theater (terminal downloads aren’t quarantined). Manual .zip? Run <code>xattr -cr /Applications/Braincell.app</code> once</p>
     </section>
 
     <!-- ──────────────────── the playable watch ───────────────────── -->
@@ -547,6 +579,32 @@
   ];
   const half = ITEMS.map(s => `<span>${s}</span>`).join('');
   document.getElementById('belt').innerHTML = half + half; // seamless -50% loop
+
+  /* ---- install command: click the plate to copy ---- */
+  const INSTALL = 'curl -fsSL https://orgolestani.github.io/braincell/install.sh | sh';
+  const cmdEl = document.getElementById('cmd');
+  const copyBtn = document.getElementById('copybtn');
+  let copyTimer = 0;
+  cmdEl.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(INSTALL);
+    } catch {
+      // clipboard API denied — fall back to a transient selectable textarea
+      const ta = document.createElement('textarea');
+      ta.value = INSTALL;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    cmdEl.classList.add('copied');
+    copyBtn.textContent = 'Copied';
+    clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => {
+      cmdEl.classList.remove('copied');
+      copyBtn.textContent = 'Copy';
+    }, 1800);
+  });
 
   requestAnimationFrame((t) => { last = t; requestAnimationFrame(loop); });
 })();
