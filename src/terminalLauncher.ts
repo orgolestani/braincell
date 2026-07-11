@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import os from 'node:os';
-import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { app, type IpcMain } from 'electron';
+import type { IpcMain } from 'electron';
+import { wrapperPath } from './wrapperPath';
 
 /**
  * Launches a *wired* Claude session in the user's real terminal (iTerm if
@@ -22,10 +22,6 @@ async function osa(script: string): Promise<string> {
 }
 const asStr = (s: string) => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 const shq = (s: string) => `'${s.replace(/'/g, `'\\''`)}'`;
-
-function wrapperPath(): string {
-  return path.join(app.getAppPath(), 'wrapper', 'braincell-wrap.cjs');
-}
 
 /** Build the shell line: cd into cwd, export the wired key, run the wrapper. */
 function wrapperCommand(cwd: string, key: string, claudeArgs: string[]): string {

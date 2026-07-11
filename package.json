@@ -1,8 +1,8 @@
 {
   "name": "claude-braincell",
-  "productName": "claude-braincell",
-  "version": "1.0.0",
-  "description": "My Electron application description",
+  "productName": "Braincell",
+  "version": "0.1.0",
+  "description": "A pocket-watch Context Meter for Claude Code — session health at a glance, compact with one press.",
   "main": ".vite/build/main.js",
   "private": true,
   "scripts": {
@@ -10,9 +10,10 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts,.tsx ."
+    "lint": "eslint --ext .ts,.tsx .",
+    "typecheck": "tsc --noEmit"
   },
-  "keywords": [],
+  "keywords": ["claude-code", "context-meter", "companion", "electron", "macos"],
   "author": "orgolestani",
   "license": "MIT",
   "devDependencies": {

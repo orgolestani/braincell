@@ -10,6 +10,12 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    icon: 'icons/braincell', // extension appended per-platform (.icns on mac)
+    // The wired wrapper runs under the user's system `node` (not Electron),
+    // so it and node-pty must live OUTSIDE the asar. extraResource flattens
+    // basenames: Resources/wrapper/, Resources/node-pty/ — the wrapper's
+    // require() falls back to ../node-pty accordingly.
+    extraResource: ['wrapper', 'node_modules/node-pty'],
   },
   rebuildConfig: {},
   makers: [

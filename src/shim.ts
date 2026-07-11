@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { app, type IpcMain } from 'electron';
+import type { IpcMain } from 'electron';
+import { wrapperPath } from './wrapperPath';
 
 /**
  * "Auto-wire" shell shim: a `claude()` shell function sourced from the user's
@@ -13,9 +14,6 @@ import { app, type IpcMain } from 'electron';
  * install, wrapper path baked in); rc files get one marker-guarded source
  * line. Both idempotent and cleanly removable.
  *
- * Packaging follow-up (not v1): app.getAppPath() points inside the asar in a
- * packaged build — either asarUnpack wrapper/** + node-pty/**, or copy the
- * wrapper into ~/.braincell at install time.
  */
 export interface ShimStatus {
   installed: boolean; // shim.sh exists AND at least one rc carries the block
@@ -29,10 +27,6 @@ const SHIM_PATH = path.join(BRAINCELL_DIR, 'shim.sh');
 const MARKER_START = '# >>> braincell shim >>>';
 const MARKER_END = '# <<< braincell shim <<<';
 const RC_BLOCK = `${MARKER_START}\n[ -f "$HOME/.braincell/shim.sh" ] && . "$HOME/.braincell/shim.sh"\n${MARKER_END}\n`;
-
-function wrapperPath(): string {
-  return path.join(app.getAppPath(), 'wrapper', 'braincell-wrap.cjs');
-}
 
 /** zsh is the macOS default and always gets the block; bash only if present. */
 function rcCandidates(): { file: string; createIfMissing: boolean }[] {

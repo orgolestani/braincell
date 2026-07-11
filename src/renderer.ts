@@ -25,8 +25,6 @@ declare global {
   interface Window {
     braincell: {
       getSessions: () => Promise<SessionInfo[]>;
-      cursor: () => Promise<{ x: number; y: number }>;
-      copy: (text: string) => Promise<{ ok: boolean }>;
       terminal: {
         launch: (opts: { cwd?: string }) => Promise<{ launched: boolean; key: string }>;
         reconnect: (opts: { sessionId: string | null; cwd: string }) => Promise<{

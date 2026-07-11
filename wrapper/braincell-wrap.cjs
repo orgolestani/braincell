@@ -15,7 +15,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 const net = require('node:net');
 const crypto = require('node:crypto');
-const pty = require('node-pty');
+let pty;
+try {
+  pty = require('node-pty'); // dev: resolved from the project's node_modules
+} catch {
+  // Packaged app: node-pty ships beside the wrapper in Contents/Resources/
+  // (forge extraResource flattens node_modules/node-pty → ../node-pty).
+  pty = require(path.join(__dirname, '..', 'node-pty'));
+}
 
 const ALLOWED = new Set(['/compact', '/clear', '/model']);
 const baseArgs = process.argv.slice(2);

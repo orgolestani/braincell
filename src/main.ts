@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, clipboard, screen } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import http from 'node:http';
 import started from 'electron-squirrel-startup';
@@ -19,14 +19,6 @@ if (!app.isPackaged) {
 }
 
 ipcMain.handle('sessions:get', () => getSessions());
-// Global cursor position for the mascot's gaze — the case is a drag region
-// (no DOM mouse events), and the mascot should watch the cursor even when
-// it roams outside the window.
-ipcMain.handle('cursor:get', () => screen.getCursorScreenPoint());
-ipcMain.handle('clipboard:copy', (_e, text: string) => {
-  clipboard.writeText(String(text));
-  return { ok: true };
-});
 // Watch ↔ fob view toggle. The window is resizable:false (fixed forms, no
 // user resizing), so flip resizable around the programmatic change.
 ipcMain.handle('window:setContentSize', (event, size: { width: number; height: number }) => {

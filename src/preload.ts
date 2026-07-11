@@ -2,8 +2,6 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('braincell', {
   getSessions: () => ipcRenderer.invoke('sessions:get'),
-  cursor: () => ipcRenderer.invoke('cursor:get'),
-  copy: (text: string) => ipcRenderer.invoke('clipboard:copy', text),
   terminal: {
     launch: (opts: { cwd?: string }) => ipcRenderer.invoke('terminal:launch', opts),
     reconnect: (opts: { sessionId: string | null; cwd: string }) =>
