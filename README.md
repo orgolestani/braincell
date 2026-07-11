@@ -26,7 +26,7 @@
 
 1. Grab the latest `Braincell-darwin-arm64-<version>.zip` from [Releases](../../releases).
 2. Unzip, drag **Braincell.app** to Applications.
-3. First launch: the app is not yet code-signed, so macOS will warn. Either **right-click → Open → Open**, or run:
+3. First launch: the build is not notarized yet, so macOS will claim the app **“is damaged and can’t be opened.”** It isn’t — that’s Gatekeeper’s message for unsigned downloads (right-click → Open does *not* bypass it). Clear the quarantine flag once, then open normally:
    ```sh
    xattr -cr /Applications/Braincell.app
    ```

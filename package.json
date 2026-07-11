@@ -1,8 +1,8 @@
 {
   "name": "claude-braincell",
   "productName": "Braincell",
-  "version": "0.1.0",
-  "description": "A pocket-watch Context Meter for Claude Code — session health at a glance, compact with one press.",
+  "version": "0.1.1",
+  "description": "A pocket-watch Context Meter for Claude Code \u2014 session health at a glance, compact with one press.",
   "main": ".vite/build/main.js",
   "private": true,
   "scripts": {
@@ -13,7 +13,13 @@
     "lint": "eslint --ext .ts,.tsx .",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": ["claude-code", "context-meter", "companion", "electron", "macos"],
+  "keywords": [
+    "claude-code",
+    "context-meter",
+    "companion",
+    "electron",
+    "macos"
+  ],
   "author": "orgolestani",
   "license": "MIT",
   "devDependencies": {
