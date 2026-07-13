@@ -25,7 +25,7 @@
 ## Download & install (macOS)
 
 ```sh
-curl -fsSL https://orgolestani.github.io/braincell/install.sh | sh
+curl -fsSL https://braincells.net/install.sh | sh
 ```
 
 Downloads the latest release, **verifies its SHA-256 against the published checksum**, installs to `/Applications`, and opens it. Terminal downloads carry no quarantine flag, so this path never hits Gatekeeper's "damaged" / "could not verify" dialogs. ([Read the script](docs/install.sh) — it's 50 lines.)

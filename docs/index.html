@@ -8,7 +8,7 @@
 <meta name="description" content="Braincells is a pocket watch for Claude Code: it tracks context pressure, visibly loses its mind as the window fills, and gives you one brass crown to /compact before the answers turn confidently useless." />
 <meta property="og:title" content="Braincells — your Claude is getting dumber" />
 <meta property="og:description" content="A Tamagotchi for Claude Code context: watch it deteriorate, compact before it's decorative." />
-<meta property="og:image" content="https://orgolestani.github.io/braincell/braincell.png" />
+<meta property="og:image" content="https://braincells.net/braincell.png" />
 <link rel="icon" href="braincell.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -372,7 +372,7 @@
       <button class="installcmd" id="cmd" type="button" aria-label="Copy the install command">
         <!-- <wbr> steers the wrap to the path boundary; the copied string
              (INSTALL in the script) is unaffected -->
-        <code><span class="p">$</span> curl -fsSL https://orgolestani.github.io/braincell/<wbr>install.sh | sh</code>
+        <code><span class="p">$</span> curl -fsSL https://braincells.net/<wbr>install.sh | sh</code>
         <span class="copybtn" id="copybtn" aria-hidden="true">Copy</span>
       </button>
       <p class="altdl">macOS · Apple Silicon · free &amp; open source</p>
@@ -602,7 +602,7 @@
   document.getElementById('belt').innerHTML = half + half; // seamless -50% loop
 
   /* ---- install command: click the plate to copy ---- */
-  const INSTALL = 'curl -fsSL https://orgolestani.github.io/braincell/install.sh | sh';
+  const INSTALL = 'curl -fsSL https://braincells.net/install.sh | sh';
   const cmdEl = document.getElementById('cmd');
   const copyBtn = document.getElementById('copybtn');
   let copyTimer = 0;

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Braincells installer — https://orgolestani.github.io/braincell
+# Braincells installer — https://braincells.net
 #
 # Downloads the latest release zip and moves Braincells.app into /Applications.
 # curl'd downloads carry no com.apple.quarantine flag, so this path never
