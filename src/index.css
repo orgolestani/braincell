@@ -615,18 +615,21 @@ body {
   height: 100%;
 }
 
-/* all state loops stacked; only the active one shows (no reload flash) */
+/* all state loops stacked; the active one cross-fades in (no reload flash).
+   Duration is mirrored by FADE_MS in mascot.ts, which pauses the outgoing
+   clip once it is fully transparent. */
 .ms-video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: none;
+  opacity: 0;
+  transition: opacity 0.28s ease;
 }
 
 .ms-video.on {
-  display: block;
+  opacity: 1;
 }
 
 .bw-mascot-empty {
