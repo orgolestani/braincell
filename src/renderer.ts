@@ -1,6 +1,6 @@
 import './index.css';
 import type { SessionInfo } from './sessions';
-import { assessSession } from './braincell';
+import { assessSession } from './braincells';
 import { renderWatch, renderWatchEmpty, type LidState, type SessionMode } from './ui/watch/Watch';
 import { renderFob, renderFobEmpty } from './ui/watch/Fob';
 import { mascot } from './ui/watch/mascot';
@@ -23,7 +23,7 @@ interface ShimStatus {
 
 declare global {
   interface Window {
-    braincell: {
+    braincells: {
       getSessions: () => Promise<SessionInfo[]>;
       terminal: {
         launch: (opts: { cwd?: string }) => Promise<{ launched: boolean; key: string }>;
@@ -74,7 +74,7 @@ let modelFlash = false; // one-shot: pulse the maker's mark after the next rende
 // Watch ↔ fob: the fob is the minimized capsule form. Persisted across runs;
 // the closed-lid onboarding always presents as the full watch.
 type View = 'watch' | 'fob';
-const VIEW_KEY = 'braincell-view';
+const VIEW_KEY = 'braincells-view';
 const VIEW_SIZES: Record<View, { width: number; height: number }> = {
   watch: { width: 280, height: 392 },
   fob: { width: 232, height: 56 },
@@ -90,7 +90,7 @@ function setView(next: View): void {
   }
   document.body.classList.toggle('fob', next === 'fob');
   flipped = false; // returning to the watch always lands on the face
-  void window.braincell.win.setContentSize(VIEW_SIZES[next].width, VIEW_SIZES[next].height);
+  void window.braincells.win.setContentSize(VIEW_SIZES[next].width, VIEW_SIZES[next].height);
   render();
 }
 let clearArmed = false;
@@ -272,7 +272,7 @@ function render(): void {
 
 async function refreshShim(): Promise<void> {
   try {
-    shim = await window.braincell.shim.status();
+    shim = await window.braincells.shim.status();
     render();
   } catch {
     /* leave stale status */
@@ -285,10 +285,10 @@ async function toggleShim(): Promise<void> {
   shimBusy = true;
   try {
     if (shim && shim.installed && shim.wrapperCurrent) {
-      shim = await window.braincell.shim.uninstall();
+      shim = await window.braincells.shim.uninstall();
       toast('Shim removed — new terminals launch claude bare');
     } else {
-      shim = await window.braincell.shim.install();
+      shim = await window.braincells.shim.install();
       toast('Shim installed — takes effect in new terminals');
     }
   } catch {
@@ -338,7 +338,7 @@ async function wireAndOpen(): Promise<void> {
   if (shimBusy || lid !== 'closed') return;
   shimBusy = true;
   try {
-    shim = await window.braincell.shim.install();
+    shim = await window.braincells.shim.install();
     toast('Auto-wire on — new claude launches start wired');
     openLid();
   } catch {
@@ -352,8 +352,8 @@ async function wireAndOpen(): Promise<void> {
 async function refresh(): Promise<void> {
   try {
     const [nextSessions, nextWired] = await Promise.all([
-      window.braincell.getSessions(),
-      window.braincell.wired.list(),
+      window.braincells.getSessions(),
+      window.braincells.wired.list(),
     ]);
     sessions = nextSessions;
     wired = nextWired;
@@ -394,7 +394,7 @@ function disarmClear(): void {
 async function control(session: SessionInfo, command: string): Promise<void> {
   const entry = wiredFor(session.sessionId);
   if (entry) {
-    const res = await window.braincell.wired.send(entry.key, command);
+    const res = await window.braincells.wired.send(entry.key, command);
     toast(res.ok ? `Sent ${command}` : `Failed to send ${command}`);
     return;
   }
@@ -416,7 +416,7 @@ function flushQueuedCommand(): void {
   queuedCommand = null;
   // Give the freshly-launched TUI a beat to mount before injecting.
   window.setTimeout(async () => {
-    const res = await window.braincell.wired.send(entry.key, cmd);
+    const res = await window.braincells.wired.send(entry.key, cmd);
     toast(res.ok ? `Sent ${cmd} to the forked session` : `Fork is up but ${cmd} didn't send — pull again`);
   }, 2500);
 }
@@ -425,7 +425,7 @@ function flushQueuedCommand(): void {
 async function reconnectHero(hero: SessionInfo): Promise<void> {
   const project = hero.project;
   const cwd = hero.cwd;
-  const res = await window.braincell.terminal.reconnect({
+  const res = await window.braincells.terminal.reconnect({
     sessionId: hero.sessionId,
     cwd,
   });
@@ -563,7 +563,7 @@ async function init(): Promise<void> {
   // would flash and the lid slam shut over it. The window is transparent, so
   // the extra ~tens of ms of blank is invisible.
   try {
-    shim = await window.braincell.shim.status();
+    shim = await window.braincells.shim.status();
     lid = shim.installed ? 'open' : 'closed';
   } catch {
     lid = 'open'; // fail open — never brick the watch on an fs hiccup
@@ -575,7 +575,7 @@ async function init(): Promise<void> {
     if (localStorage.getItem(VIEW_KEY) === 'fob' && lid === 'open') {
       view = 'fob';
       document.body.classList.add('fob');
-      await window.braincell.win.setContentSize(VIEW_SIZES.fob.width, VIEW_SIZES.fob.height);
+      await window.braincells.win.setContentSize(VIEW_SIZES.fob.width, VIEW_SIZES.fob.height);
     }
   } catch {
     /* keep the watch view */

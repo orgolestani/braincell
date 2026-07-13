@@ -10,11 +10,11 @@
  * window is too short for the paper-tag tips.
  */
 import type { SessionInfo } from '../../sessions';
-import type { BraincellAssessment } from '../../braincell';
+import type { BraincellsAssessment } from '../../braincells';
 import { activityOf } from '../../activity';
 import { escapeHtml, prettyModel } from '../format';
 
-export function renderFob(session: SessionInfo, assessment: BraincellAssessment): string {
+export function renderFob(session: SessionInfo, assessment: BraincellsAssessment): string {
   const pct = Math.min(100, (session.contextTokens / session.contextLimit) * 100);
   const meterTitle = `Context ${Math.round(pct)}% — ${escapeHtml(assessment.label)} · ${escapeHtml(prettyModel(session.model))}`;
   return `

@@ -51,7 +51,7 @@ function renderShimPlate(shim: CasebackShimStatus | null): string {
     unknown: 'Checking auto-wire status…',
     off: 'Install the shell shim — every new claude launch is born wired',
     on: 'Auto-wire installed — new claude launches are born wired',
-    repair: 'Shim points at an old Braincell location — click to reinstall',
+    repair: 'Shim points at an old Braincells location — click to reinstall',
   }[state];
   return `
     <button class="bm-shimtoggle bw-shim" type="button" data-state="${state}" title="${title}">
@@ -71,7 +71,7 @@ export function renderCaseback(props: CasebackProps): string {
       <span class="bw-slot-ago">auto</span>
     </button>`;
 
-  // Fork is the escape hatch for sessions Braincell didn't launch — hidden
+  // Fork is the escape hatch for sessions Braincells didn't launch — hidden
   // when the hero is already wired.
   const forkButton = props.heroWired
     ? ''
@@ -80,7 +80,7 @@ export function renderCaseback(props: CasebackProps): string {
 
   return `
     <div class="bw-caseback">
-      <div class="bw-back-title">Braincell</div>
+      <div class="bw-back-title">Braincells</div>
       <div class="bw-back-engraving">${escapeHtml(prettyModel(props.hero.model))}${props.hero.gitBranch ? ` · ${escapeHtml(props.hero.gitBranch)}` : ''}</div>
       <div class="bw-back-section">✦ sessions — tap to track ✦</div>
       <div class="bw-slots">${followSlot}${props.sessions.map((s) => renderSlot(s, props.selectedId, props.wiredIds)).join('')}</div>

@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-contextBridge.exposeInMainWorld('braincell', {
+contextBridge.exposeInMainWorld('braincells', {
   getSessions: () => ipcRenderer.invoke('sessions:get'),
   terminal: {
     launch: (opts: { cwd?: string }) => ipcRenderer.invoke('terminal:launch', opts),

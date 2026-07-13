@@ -2,7 +2,7 @@ import type { SessionInfo } from './sessions';
 
 export type Heat = 'ok' | 'warn' | 'danger';
 
-export interface BraincellAssessment {
+export interface BraincellsAssessment {
   score: number; // 0–10, 10 = fresh brain
   label: string;
   heat: Heat;
@@ -28,7 +28,7 @@ const LABELS: { min: number; label: string }[] = [
  * base score is the fraction of context still free, scaled to 0–10,
  * with a -1 penalty in the danger zone (auto-compact imminent).
  */
-export function assessSession(session: SessionInfo): BraincellAssessment {
+export function assessSession(session: SessionInfo): BraincellsAssessment {
   const pct = Math.min(1, session.contextTokens / session.contextLimit);
   const pctDisplay = Math.round(pct * 100);
 

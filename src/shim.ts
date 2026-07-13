@@ -6,7 +6,7 @@ import { wrapperPath } from './wrapperPath';
 
 /**
  * "Auto-wire" shell shim: a `claude()` shell function sourced from the user's
- * rc file, so every interactive `claude` launch runs under the Braincell
+ * rc file, so every interactive `claude` launch runs under the Braincells
  * wrapper and is born WIRED — no new windows, no forks. Non-interactive and
  * utility invocations pass through to the real binary untouched.
  *
@@ -37,7 +37,7 @@ function rcCandidates(): { file: string; createIfMissing: boolean }[] {
 }
 
 function shimScript(): string {
-  return `# Braincell shim — interactive \`claude\` runs born WIRED (managed by Braincell,
+  return `# Braincells shim — interactive \`claude\` runs born WIRED (managed by Braincells,
 # reinstall from the app). Escape hatch: BRAINCELL_DISABLE=1 claude
 BRAINCELL_WRAPPER="${wrapperPath()}"
 claude() {

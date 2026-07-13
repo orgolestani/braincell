@@ -10,7 +10,7 @@ import { wrapperPath } from './wrapperPath';
  * Launches a *wired* Claude session in the user's real terminal (iTerm if
  * installed, else Terminal.app). AppleScript is used ONLY to open a window and
  * run a command — never to type into the session. The command runs the
- * Braincell wrapper (wrapper/braincell-wrap.cjs), which owns Claude's PTY and
+ * Braincells wrapper (wrapper/braincell-wrap.cjs), which owns Claude's PTY and
  * exposes a control socket (see wired.ts). No terminal focus/keyboard control.
  */
 const run = promisify(execFile);
@@ -48,7 +48,7 @@ async function openTerminal(cmd: string): Promise<void> {
   }
 }
 
-/** Launch a fresh wired session; returns the key Braincell tracks it by. */
+/** Launch a fresh wired session; returns the key Braincells tracks it by. */
 async function launch(cwd: string): Promise<{ launched: boolean; key: string }> {
   const key = crypto.randomUUID();
   await openTerminal(wrapperCommand(cwd, key, []));

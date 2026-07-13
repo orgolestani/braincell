@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Braincell wired wrapper — runs in the USER'S terminal (plain Node, not
+ * Braincells wired wrapper — runs in the USER'S terminal (plain Node, not
  * Electron). Owns Claude's PTY and exposes a Unix-domain control socket so
- * Braincell can inject whitelisted slash commands without any terminal focus
+ * Braincells can inject whitelisted slash commands without any terminal focus
  * or keyboard automation. The user types normally: terminal → this → PTY.
  *
  * Usage:  node braincell-wrap.cjs [<extra claude args>]
@@ -26,7 +26,7 @@ try {
 
 const ALLOWED = new Set(['/compact', '/clear', '/model']);
 const baseArgs = process.argv.slice(2);
-// Braincell passes the key via env so it can track this session deterministically.
+// Braincells passes the key via env so it can track this session deterministically.
 const key = process.env.BC_KEY || crypto.randomUUID();
 const cwd = process.cwd();
 const dir = path.join(os.homedir(), '.braincell', 'wired');
@@ -65,7 +65,7 @@ function writeReg(sessionId) {
 }
 
 // Only force our deterministic id when it can't conflict: a plain launch, or
-// a fork (Braincell reconnect passes --resume old --fork-session and a fresh
+// a fork (Braincells reconnect passes --resume old --fork-session and a fresh
 // id names the fork). A user resume/continue keeps its own session id.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const explicitIdAt = baseArgs.indexOf('--session-id');

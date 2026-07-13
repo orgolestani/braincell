@@ -5,9 +5,9 @@ import net from 'node:net';
 import type { IpcMain } from 'electron';
 
 /**
- * Discovers and talks to wired Claude sessions (launched via the Braincell
+ * Discovers and talks to wired Claude sessions (launched via the Braincells
  * wrapper). Each live wrapper drops a registry json + control socket under
- * ~/.braincell/wired/. Braincell sends whitelisted commands over the socket —
+ * ~/.braincell/wired/. Braincells sends whitelisted commands over the socket —
  * no terminal focus or keyboard automation.
  */
 export interface WiredEntry {

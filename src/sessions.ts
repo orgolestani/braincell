@@ -337,7 +337,7 @@ export function getSessions(): SessionInfo[] {
 
   files.sort((a, b) => b.mtimeMs - a.mtimeMs);
 
-  // Always include sessions Braincell is wired to, even if they've gone idle
+  // Always include sessions Braincells is wired to, even if they've gone idle
   // and fallen out of the most-recent window.
   const chosen = files.slice(0, MAX_SESSIONS);
   const chosenPaths = new Set(chosen.map((f) => f.filePath));

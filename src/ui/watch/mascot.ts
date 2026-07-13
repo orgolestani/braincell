@@ -21,7 +21,7 @@
  * so mount() just re-appends the persistent wrapper into the fresh
  * `[data-mascot-slot]`.
  */
-import type { Heat } from '../../braincell';
+import type { Heat } from '../../braincells';
 import type { Activity } from '../../activity';
 import smartBrainUrl from '../../assets/smart-brain.webm';
 import stupidBrainUrl from '../../assets/stupid-brain.webm';

@@ -1,6 +1,6 @@
 {
-  "name": "claude-braincell",
-  "productName": "Braincell",
+  "name": "claude-braincells",
+  "productName": "Braincells",
   "version": "0.1.1",
   "description": "A pocket-watch Context Meter for Claude Code \u2014 session health at a glance, compact with one press.",
   "main": ".vite/build/main.js",

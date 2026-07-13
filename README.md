@@ -1,9 +1,9 @@
-# Braincell 🧠⌚
+# Braincells 🧠⌚
 
-**A pocket-watch Context Meter for Claude Code.** Braincell sits on your desktop like a small brass instrument and shows the health of your current Claude Code session at a glance — context pressure, model, activity, errors — with a one-press **compact**.
+**A pocket-watch Context Meter for Claude Code.** Braincells sits on your desktop like a small brass instrument and shows the health of your current Claude Code session at a glance — context pressure, model, activity, errors — with a one-press **compact**.
 
 <p align="center">
-  <img src="docs/screenshot.png" width="280" alt="Braincell — a brass pocket watch showing a Context meter at 34%, a cartoon brain mascot, and the model name Fable 5" />
+  <img src="docs/screenshot.png" width="280" alt="Braincells — a brass pocket watch showing a Context meter at 34%, a cartoon brain mascot, and the model name Fable 5" />
 </p>
 
 ## What it does
@@ -18,7 +18,7 @@
 ## Watching vs. Wired
 
 - **WATCHING** (default) — read-only monitoring of any session, from any Claude Code surface (terminal, desktop app, IDE). No control possible.
-- **WIRED** — sessions launched through Braincell's wrapper get live controls: Compact and Clear are injected over a local socket (whitelisted commands only, never keyboard automation).
+- **WIRED** — sessions launched through Braincells's wrapper get live controls: Compact and Clear are injected over a local socket (whitelisted commands only, never keyboard automation).
 
 **Auto-wire** makes every new `claude` you launch in a terminal start wired: it adds one marker-guarded block to your shell rc that sources `~/.braincell/shim.sh`. Escape hatch: `BRAINCELL_DISABLE=1 claude`. Uninstall anytime from the caseback toggle — the block is removed cleanly.
 
@@ -33,11 +33,11 @@ Downloads the latest release, **verifies its SHA-256 against the published check
 <details>
 <summary>Manual install</summary>
 
-1. Grab the latest `Braincell-darwin-arm64-<version>.zip` from [Releases](../../releases).
-2. Unzip, drag **Braincell.app** to Applications.
+1. Grab the latest `Braincells-darwin-arm64-<version>.zip` from [Releases](../../releases).
+2. Unzip, drag **Braincells.app** to Applications.
 3. First launch: the build is not notarized yet, so macOS will claim the app **“is damaged”** or **“could not be verified.”** It isn’t — that’s Gatekeeper on unsigned browser downloads (right-click → Open does *not* reliably bypass it). Clear the quarantine flag once, then open normally:
    ```sh
-   xattr -cr /Applications/Braincell.app
+   xattr -cr /Applications/Braincells.app
    ```
 </details>
 
@@ -45,7 +45,7 @@ Requirements: Apple Silicon Mac (build from source for Intel), [Claude Code](htt
 
 ## Privacy & safety
 
-- Watching is **read-only** — Braincell only reads local transcript files.
+- Watching is **read-only** — Braincells only reads local transcript files.
 - Control happens **only** through the wrapper's local socket (`~/.braincell/wired`, `0600` perms), with a whitelist: `/compact`, `/clear`, `/model`. No arbitrary commands, no keystroke injection, no terminal focus stealing.
 - Nothing leaves your machine.
 

@@ -9,7 +9,7 @@
  * The case itself is the drag region; every control opts out.
  */
 import type { SessionInfo } from '../../sessions';
-import type { BraincellAssessment } from '../../braincell';
+import type { BraincellsAssessment } from '../../braincells';
 import { activityOf } from '../../activity';
 import { renderFace, renderFaceEmpty } from './Face';
 import { renderCaseback, type CasebackShimStatus } from './Caseback';
@@ -41,14 +41,14 @@ function renderLid(lid: LidState): string {
   if (!lid) return '';
   return `
     <div class="bw-lid ${lid === 'opening' ? 'opening' : ''}">
-      <div class="bw-back-title">Braincell</div>
+      <div class="bw-back-title">Braincells</div>
       <div class="bw-back-engraving">a pocket watch for claude code</div>
       <button class="bm-lidwire bw-lid-primary" type="button"
               title="Adds one line to your shell rc so every new \`claude\` you launch starts WIRED — live Compact/Clear, no fork. Then opens the case.">
         <span class="bw-lid-bolt">⚡</span> Auto-wire &amp; open
       </button>
       <button class="bm-lidopen bw-lid-secondary" type="button"
-              title="Open without installing anything — Braincell watches sessions read-only. Auto-wire is available later on the caseback.">just open</button>
+              title="Open without installing anything — Braincells watches sessions read-only. Auto-wire is available later on the caseback.">just open</button>
       <div class="bw-lid-fine">auto-wire edits your shell rc</div>
     </div>`;
 }
@@ -76,8 +76,8 @@ function renderShell(
         <span class="bw-crown-collar"></span>
         <span class="bw-crown-cap"></span>
       </button>
-      <span class="bw-pusher-wrap bw-pw-close" data-tip="Close Braincell" data-tip-align="left">
-        <button class="bm-close bw-pusher" type="button" aria-label="Close Braincell"><span>✕</span></button>
+      <span class="bw-pusher-wrap bw-pw-close" data-tip="Close Braincells" data-tip-align="left">
+        <button class="bm-close bw-pusher" type="button" aria-label="Close Braincells"><span>✕</span></button>
       </span>
       <span class="bw-pusher-wrap bw-pw-flip" data-tip="${flipTip}" data-tip-align="right">
         <button class="bm-flip bw-pusher" type="button" aria-label="Sessions and settings"><span>⚙</span></button>
@@ -101,7 +101,7 @@ function renderShell(
 
 export function renderWatch(
   session: SessionInfo,
-  assessment: BraincellAssessment,
+  assessment: BraincellsAssessment,
   opts: WatchOptions,
 ): string {
   const pct = Math.min(100, (session.contextTokens / session.contextLimit) * 100);
@@ -128,7 +128,7 @@ export function renderWatch(
 export function renderWatchEmpty(lid: LidState = null): string {
   const back = `
     <div class="bw-caseback">
-      <div class="bw-back-title">Braincell</div>
+      <div class="bw-back-title">Braincells</div>
       <div class="bw-back-engraving">no sessions detected</div>
       <div class="bw-back-hint">run <code>claude</code> in a terminal</div>
     </div>`;

@@ -1,8 +1,8 @@
 # CLAUDE.md
 
-## Project: Braincell / Context Meter
+## Project: Braincells / Context Meter
 
-Braincell is a small macOS desktop companion for Claude Code. It monitors the current Claude Code session and shows a playful but useful “Context Meter” with session state, context pressure, model, token usage, and quick controls.
+Braincells is a small macOS desktop companion for Claude Code. It monitors the current Claude Code session and shows a playful but useful “Context Meter” with session state, context pressure, model, token usage, and quick controls.
 
 The product should feel like a small physical desktop device, not a SaaS dashboard.
 
@@ -11,7 +11,7 @@ The product should feel like a small physical desktop device, not a SaaS dashboa
 Core idea:
 
 - User runs Claude Code normally.
-- Braincell opens as a small always-on-top companion.
+- Braincells opens as a small always-on-top companion.
 - It automatically detects the active/latest Claude Code session.
 - It shows whether the session is healthy, bloated, stale, or “cooked.”
 - It should be useful first, funny second.
@@ -66,13 +66,13 @@ The mascot should be charming but not distract from the Context Meter.
 
 ## Session connection model
 
-Braincell has three connection modes:
+Braincells has three connection modes:
 
 ### WATCHING
 
 Default mode.
 
-- Braincell detects Claude Code sessions by reading local JSONL transcripts.
+- Braincells detects Claude Code sessions by reading local JSONL transcripts.
 - Look under `$CLAUDE_CONFIG_DIR/projects` if set, otherwise `~/.claude/projects`.
 - Auto-select the latest/active session by default.
 - User can pin/select another session.
@@ -105,11 +105,11 @@ Session detection rules (do not regress):
 
 Controlled mode.
 
-- Claude was launched through a Braincell wrapper.
+- Claude was launched through a Braincells wrapper.
 - Wrapper runs inside the user’s real terminal.
-- Braincell does not embed a terminal.
+- Braincells does not embed a terminal.
 - Wrapper owns Claude’s PTY and exposes a local control socket.
-- Braincell sends whitelisted slash commands to the socket.
+- Braincells sends whitelisted slash commands to the socket.
 - Wrapper writes those commands to Claude stdin.
 - Compact/Clear execute live only in WIRED mode.
 
@@ -118,11 +118,11 @@ Controlled mode.
 Transient mode.
 
 - User is watching an unmanaged session and clicks “Reconnect with controls.”
-- Braincell launches a new wired Claude process in the user’s preferred terminal.
+- Braincells launches a new wired Claude process in the user’s preferred terminal.
 - It resumes/forks the selected session.
 - Use deterministic IDs:
   - old watched session id = `oldId`
-  - Braincell generates `newId`
+  - Braincells generates `newId`
   - launch Claude with `--resume oldId --fork-session --session-id newId`
 - Do not use global newest-mtime guessing.
 - Do not kill the old terminal.

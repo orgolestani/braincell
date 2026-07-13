@@ -10,11 +10,11 @@
  * this module only renders the empty slot.
  */
 import { escapeHtml, prettyModel } from '../format';
-import type { BraincellAssessment } from '../../braincell';
+import type { BraincellsAssessment } from '../../braincells';
 import type { Activity } from '../../activity';
 
 export interface FaceProps {
-  assessment: BraincellAssessment;
+  assessment: BraincellsAssessment;
   contextPct: number; // 0–100
   activity: Activity;
   errors: number; // tool errors since the last user prompt
