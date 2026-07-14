@@ -4,7 +4,7 @@
  * The window is frameless + transparent: only the watch is visible. All
  * layout is fixed-size around a 240px dial in a 280×336 window, crown at 12.
  * Namespaces: .bw-* watch chrome; .bm-* action hooks shared with renderer.ts
- * delegation (bm-compact / bm-flip / bm-close / bm-clear / bm-reconnect /
+ * delegation (bm-compact / bm-flip / bm-close / bm-clear /
  * bm-shimtoggle / bm-lidwire / bm-lidopen / [data-session-id]).
  */
 
@@ -240,7 +240,7 @@ body {
 [data-tip]:hover::after,
 [data-tip]:hover::before {
   opacity: 1;
-  transition-delay: 0.4s; /* a beat, so pass-over hovers don't flicker tags */
+  transition-delay: 0.15s; /* a beat, so pass-over hovers don't flicker tags */
 }
 
 /* edge pushers pin the tag inward so it stays inside the 280px window */
@@ -553,7 +553,8 @@ body {
   stroke-width: 1.6;
 }
 
-/* activity jewel at 12 */
+/* link-status jewel at 12 — watching (default/grey) vs reconnecting (amber,
+   fast pulse) vs wired (green, calm pulse) */
 .bw-jewel {
   position: absolute;
   left: 50%;
@@ -566,11 +567,12 @@ body {
   background: radial-gradient(circle at 35% 30%, #fff6, transparent 60%), var(--stale);
 }
 
-.bw-jewel[data-activity='recent'] {
+.bw-jewel[data-mode='reconnecting'] {
   background: radial-gradient(circle at 35% 30%, #fff8, transparent 60%), var(--recent);
+  animation: bw-jewel-pulse 0.9s ease-in-out infinite;
 }
 
-.bw-jewel[data-activity='live'] {
+.bw-jewel[data-mode='wired'] {
   background: radial-gradient(circle at 35% 30%, #fffa, transparent 60%), var(--live);
   animation: bw-jewel-pulse 1.6s ease-in-out infinite;
 }
@@ -746,15 +748,17 @@ body {
   width: 100%;
   height: 100%;
   /* circle narrows fast near the bottom — keep wide rows high, pad the foot */
-  padding: 14px 0 30px;
+  padding: 9px 0 30px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  /* engraved circles */
+  /* engraved rim circles — kept out near the brass edge (content only ever
+     reaches ~83% of the radius) so they read as rim engraving instead of
+     cutting through the title/list/buttons */
   background:
-    radial-gradient(circle, transparent 62%, rgba(0, 0, 0, 0.12) 63%, transparent 64%),
-    radial-gradient(circle, transparent 70%, rgba(255, 255, 255, 0.18) 71%, transparent 72%);
+    radial-gradient(circle, transparent 90%, rgba(0, 0, 0, 0.12) 91%, transparent 92%),
+    radial-gradient(circle, transparent 95%, rgba(255, 255, 255, 0.18) 96%, transparent 97%);
 }
 
 .bw-back-title {
@@ -765,11 +769,30 @@ body {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
+/* "Braincells" engraved along the caseback's own curve, instead of a flat
+   line that either crowds the rim or gets cut by the circular clip. */
+.bw-title-arc {
+  width: 200px;
+  height: 27px;
+  overflow: visible;
+  flex: none;
+}
+
+.bw-title-arc-text {
+  font-family: inherit;
+  font-size: 13px;
+  font-variant: small-caps;
+  letter-spacing: 4px;
+  fill: rgba(44, 34, 22, 0.9);
+}
+
 .bw-back-engraving {
+  flex: none; /* overflow:hidden zeroes min-height — without this the flex
+                 column crops this line first when space runs out */
   font-size: 10px;
   font-style: italic;
   letter-spacing: 1px;
-  color: rgba(44, 34, 22, 0.6);
+  color: rgba(44, 34, 22, 0.82);
   max-width: 170px;
   white-space: nowrap;
   overflow: hidden;
@@ -778,18 +801,19 @@ body {
 
 /* engraved section divider above the session list */
 .bw-back-section {
+  flex: none;
   margin-top: 3px;
   font-size: 8px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: rgba(44, 34, 22, 0.65);
+  color: rgba(44, 34, 22, 0.85);
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .bw-back-hint {
   margin-top: 10px;
   font-size: 11px;
-  color: rgba(44, 34, 22, 0.65);
+  color: rgba(44, 34, 22, 0.85);
 }
 
 .bw-back-hint code {
@@ -801,36 +825,53 @@ body {
 .bw-slots {
   width: 180px;
   max-height: 104px;
+  /* the ONE child allowed to shrink when the column runs out of circle:
+     it scrolls, so shrinking loses nothing — every text row is flex:none */
+  min-height: 26px;
+  flex-shrink: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  scrollbar-width: thin;
+  /* no scrollbar-width here: setting it makes Chromium ignore the
+     ::-webkit-scrollbar styling below and paint the default white bar */
 }
 
 .bw-slots::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
+}
+
+.bw-slots::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .bw-slots::-webkit-scrollbar-thumb {
-  background: var(--brass-lo);
-  border-radius: 2px;
+  background: rgba(44, 34, 22, 0.35);
+  border-radius: 4px;
+}
+
+.bw-slots::-webkit-scrollbar-thumb:hover {
+  background: rgba(44, 34, 22, 0.5);
 }
 
 .bw-slot {
   position: relative;
+  flex: none; /* rows keep their height; the list scrolls instead */
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 7px 6px;
+  padding: 3px 8px 5px;
   border: 1px solid rgba(85, 64, 15, 0.5);
-  border-radius: 3px;
+  border-radius: 9px;
   background: linear-gradient(180deg, var(--paper), #ddcda6);
   font-family: inherit;
   font-size: 10px;
   color: var(--ink);
   cursor: pointer;
   text-align: left;
+  transition:
+    filter 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .bw-slot:hover {
@@ -869,14 +910,14 @@ body {
 
 .bw-slot-ago {
   font-size: 9px;
-  color: var(--ink-soft);
+  color: rgba(44, 34, 22, 0.8);
   white-space: nowrap;
 }
 
 .bw-slot-bar {
   position: absolute;
-  left: 4px;
-  right: 4px;
+  left: 8px;
+  right: 8px;
   bottom: 2px;
   height: 2px;
   border-radius: 1px;
@@ -907,6 +948,17 @@ body {
   animation: bw-dot-pulse 1.6s ease-in-out infinite;
 }
 
+/* same dot, repurposed as the fob's link-status indicator */
+.bw-dot[data-mode='reconnecting'] {
+  background: var(--recent);
+  animation: bw-dot-pulse 0.9s ease-in-out infinite;
+}
+
+.bw-dot[data-mode='wired'] {
+  background: var(--live);
+  animation: bw-dot-pulse 1.6s ease-in-out infinite;
+}
+
 @keyframes bw-dot-pulse {
   0%,
   100% {
@@ -917,24 +969,9 @@ body {
   }
 }
 
-/* fork escape hatch */
-.bw-fork {
-  padding: 2px 8px;
-  border-radius: 9px;
-  border: 1px solid var(--brass-edge);
-  background: linear-gradient(180deg, var(--paper), #ddcda6);
-  font-family: inherit;
-  font-size: 9px;
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.bw-fork:hover {
-  filter: brightness(1.06);
-}
-
 /* clear + shim row */
 .bw-back-row {
+  flex: none;
   margin-top: auto;
   display: flex;
   align-items: center;
@@ -942,11 +979,16 @@ body {
 }
 
 .bw-clearbtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   padding: 3px 9px;
   border-radius: 10px;
   border: 1px solid var(--brass-edge);
-  background: linear-gradient(180deg, #c9584a, var(--danger));
-  color: #ffe9e2;
+  /* default (watching): calm paper — pulling this forks a copy, the real
+     terminal is untouched. Only the wired/live state below gets the red. */
+  background: linear-gradient(180deg, var(--paper), #ddcda6);
+  color: var(--ink);
   font-family: inherit;
   font-variant: small-caps;
   letter-spacing: 1.5px;
@@ -955,11 +997,38 @@ body {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
+/* wired/live: this pull runs /clear on the session you're actually using —
+   read as visibly hotter than the watching/fork state above. */
+.bw-clearbtn[data-live='true'] {
+  background: linear-gradient(180deg, #c9584a, var(--danger));
+  color: #ffe9e2;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 4px 1px rgba(168, 60, 38, 0.5);
+}
+
+.bw-clear-lamp {
+  margin: 0;
+}
+
 .bw-clearbtn.armed {
   animation: bw-armed 0.6s ease-in-out infinite alternate;
 }
 
+.bw-clearbtn[data-live='true'].armed {
+  animation: bw-armed-live 0.6s ease-in-out infinite alternate;
+}
+
 @keyframes bw-armed {
+  from {
+    box-shadow: 0 0 2px 1px rgba(122, 92, 27, 0.4);
+  }
+  to {
+    box-shadow: 0 0 8px 3px rgba(122, 92, 27, 0.7);
+  }
+}
+
+@keyframes bw-armed-live {
   from {
     box-shadow: 0 0 2px 1px rgba(168, 60, 38, 0.5);
   }
@@ -1348,9 +1417,13 @@ body.fob #toast {
     transition: none;
   }
 
-  .bw-jewel[data-activity='live'],
+  .bw-jewel[data-mode='wired'],
+  .bw-jewel[data-mode='reconnecting'],
   .bw-dot[data-activity='live'],
+  .bw-dot[data-mode='wired'],
+  .bw-dot[data-mode='reconnecting'],
   .bw-clearbtn.armed,
+  .bw-clearbtn[data-live='true'].armed,
   .bw[data-heat='danger'],
   .bw[data-heat='danger'] .bw-aperture-value,
   .bw-steam span {
@@ -1365,6 +1438,12 @@ body.fob #toast {
       0 6px 18px rgba(0, 0, 0, 0.45),
       0 0 14px 5px rgba(168, 60, 38, 0.6),
       inset 0 2px 6px rgba(0, 0, 0, 0.25);
+  }
+
+  .bw-clearbtn[data-live='true'].armed {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      0 0 8px 3px rgba(168, 60, 38, 0.85);
   }
 
   .bw-crown,

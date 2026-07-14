@@ -1,7 +1,8 @@
 import './index.css';
 import type { SessionInfo } from './sessions';
 import { assessSession } from './braincells';
-import { renderWatch, renderWatchEmpty, type LidState, type SessionMode } from './ui/watch/Watch';
+import { renderWatch, renderWatchEmpty, type LidState } from './ui/watch/Watch';
+import type { SessionMode } from './mode';
 import { renderFob, renderFobEmpty } from './ui/watch/Fob';
 import { mascot } from './ui/watch/mascot';
 import { activityOf } from './activity';
@@ -247,7 +248,7 @@ function render(): void {
   }
   const assessment = assessSession(hero);
   const html = asFob
-    ? renderFob(hero, assessment)
+    ? renderFob(hero, assessment, modeOf(hero))
     : renderWatch(hero, assessment, {
         sessions,
         selectedId,
@@ -518,18 +519,6 @@ document.getElementById('hero')?.addEventListener('click', (event) => {
   if (clearArmed) {
     disarmClear();
     render();
-  }
-
-  // Explicit "Reconnect with controls" — the only thing that forks/wires.
-  // Plain session selection just watches; it must never launch a terminal.
-  if (target.closest('.bm-reconnect')) {
-    const picked = hero;
-    if (picked && !wiredFor(picked.sessionId) && picked.sessionId !== pendingKey) {
-      flipped = false;
-      animateFlip();
-      void reconnectHero(picked);
-    }
-    return;
   }
 
   const slot = target.closest<HTMLElement>('[data-session-id]');

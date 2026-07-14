@@ -11,21 +11,15 @@
  */
 import { escapeHtml, prettyModel } from '../format';
 import type { BraincellsAssessment } from '../../braincells';
-import type { Activity } from '../../activity';
+import { MODE_TITLES, type SessionMode } from '../../mode';
 
 export interface FaceProps {
   assessment: BraincellsAssessment;
   contextPct: number; // 0–100
-  activity: Activity;
+  mode: SessionMode;
   errors: number; // tool errors since the last user prompt
   model: string | null; // session model id — printed as the maker's mark
 }
-
-const ACTIVITY_TITLES: Record<Activity, string> = {
-  live: 'Claude is responding now',
-  recent: 'Idle — recent activity',
-  stale: 'Stale — no recent activity',
-};
 
 // Dial geometry (viewBox units == css px at 240 dial).
 const DIAL = 240;
@@ -78,27 +72,23 @@ function renderBezel(contextPct: number): string {
 }
 
 export function renderFace(props: FaceProps): string {
-  const errTitle =
-    props.errors === 0
-      ? 'Running clean — no errors since your last message'
-      : `${props.errors} tool error${props.errors === 1 ? '' : 's'} since your last message`;
-  const meterTitle = `Context Meter — ${escapeHtml(props.assessment.label)}: ${props.assessment.reasons.map(escapeHtml).join(', ')}`;
+  const errTip = `${props.errors} tool error${props.errors === 1 ? '' : 's'}`;
 
   return `
-    <div class="bw-face" data-heat="${props.assessment.heat}" title="${meterTitle}">
+    <div class="bw-face" data-heat="${props.assessment.heat}">
       ${renderBezel(props.contextPct)}
-      <div class="bw-jewel" data-activity="${props.activity}" title="${ACTIVITY_TITLES[props.activity]}"></div>
+      <div class="bw-jewel" data-mode="${props.mode}" data-tip="${MODE_TITLES[props.mode]}"></div>
       <div class="bw-porthole">
         <div class="bw-mascot" data-mascot-slot></div>
       </div>
-      <div class="bw-aperture" title="Context window used">
+      <div class="bw-aperture" data-tip="Context used" data-tip-pos="top">
         <span class="bw-aperture-label">Context</span>
         <span class="bw-aperture-value">${Math.round(props.contextPct)}%</span>
       </div>
-      <div class="bw-errjewel" data-lit="${props.errors > 0}" title="${errTitle}">${props.errors > 0 ? props.errors : ''}</div>
+      <div class="bw-errjewel" data-lit="${props.errors > 0}" data-tip="${errTip}" data-tip-pos="top">${props.errors > 0 ? props.errors : ''}</div>
       ${
         props.model
-          ? `<div class="bw-model" title="Session model: ${escapeHtml(props.model)}">${escapeHtml(prettyModel(props.model))}</div>`
+          ? `<div class="bw-model" data-tip="${escapeHtml(props.model)}" data-tip-pos="top">${escapeHtml(prettyModel(props.model))}</div>`
           : ''
       }
     </div>`;
@@ -109,7 +99,7 @@ export function renderFaceEmpty(): string {
   return `
     <div class="bw-face" data-heat="ok">
       ${renderBezel(0)}
-      <div class="bw-jewel" data-activity="stale" title="No sessions detected"></div>
+      <div class="bw-jewel" data-mode="watching" data-tip="No sessions detected"></div>
       <div class="bw-porthole">
         <div class="bw-mascot bw-mascot-empty" data-mascot-slot>zzz</div>
       </div>
@@ -117,6 +107,6 @@ export function renderFaceEmpty(): string {
         <span class="bw-aperture-label">Context</span>
         <span class="bw-aperture-value">—</span>
       </div>
-      <div class="bw-errjewel" data-lit="false"></div>
+      <div class="bw-errjewel" data-lit="false" data-tip="0 tool errors"></div>
     </div>`;
 }

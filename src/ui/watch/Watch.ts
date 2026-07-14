@@ -10,11 +10,9 @@
  */
 import type { SessionInfo } from '../../sessions';
 import type { BraincellsAssessment } from '../../braincells';
-import { activityOf } from '../../activity';
+import type { SessionMode } from '../../mode';
 import { renderFace, renderFaceEmpty } from './Face';
-import { renderCaseback, type CasebackShimStatus } from './Caseback';
-
-export type SessionMode = 'watching' | 'reconnecting' | 'wired';
+import { renderCaseback, TITLE_ARC, type CasebackShimStatus } from './Caseback';
 
 /** Hunter-case lid: covers the face until auto-wire onboarding resolves. */
 export type LidState = 'closed' | 'opening' | null;
@@ -43,12 +41,10 @@ function renderLid(lid: LidState): string {
     <div class="bw-lid ${lid === 'opening' ? 'opening' : ''}">
       <div class="bw-back-title">Braincells</div>
       <div class="bw-back-engraving">a pocket watch for claude code</div>
-      <button class="bm-lidwire bw-lid-primary" type="button"
-              title="Adds one line to your shell rc so every new \`claude\` you launch starts WIRED — live Compact/Clear, no fork. Then opens the case.">
+      <button class="bm-lidwire bw-lid-primary" type="button" data-tip="Wires future sessions">
         <span class="bw-lid-bolt">⚡</span> Auto-wire &amp; open
       </button>
-      <button class="bm-lidopen bw-lid-secondary" type="button"
-              title="Open without installing anything — Braincells watches sessions read-only. Auto-wire is available later on the caseback.">just open</button>
+      <button class="bm-lidopen bw-lid-secondary" type="button" data-tip="Read-only, no wiring">just open</button>
       <div class="bw-lid-fine">auto-wire edits your shell rc</div>
     </div>`;
 }
@@ -65,7 +61,7 @@ function renderShell(
   // advertising controls that won't fire.
   const closed = lid === 'closed';
   // No crown tip while closed — the crown is inert and shouldn't advertise.
-  const crownTip = closed ? '' : 'data-tip="Press: compact context (/compact)" data-tip-pos="top"';
+  const crownTip = closed ? '' : 'data-tip="Compact context" data-tip-pos="top"';
   const flipTip = closed ? 'Open the case first' : flipped ? 'Back to the meter' : 'Sessions &amp; settings';
   return `
     <div class="bw" ${attrs}>
@@ -108,7 +104,7 @@ export function renderWatch(
   const front = renderFace({
     assessment,
     contextPct: pct,
-    activity: activityOf(session.mtimeMs),
+    mode: opts.mode,
     errors: session.freshErrors,
     model: session.model,
   });
@@ -128,7 +124,7 @@ export function renderWatch(
 export function renderWatchEmpty(lid: LidState = null): string {
   const back = `
     <div class="bw-caseback">
-      <div class="bw-back-title">Braincells</div>
+      ${TITLE_ARC}
       <div class="bw-back-engraving">no sessions detected</div>
       <div class="bw-back-hint">run <code>claude</code> in a terminal</div>
     </div>`;

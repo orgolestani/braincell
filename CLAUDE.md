@@ -117,7 +117,8 @@ Controlled mode.
 
 Transient mode.
 
-- User is watching an unmanaged session and clicks “Reconnect with controls.”
+- User is watching an unmanaged session and pulls Compact/Clear (there is no
+  standalone "wire this session" button — removed 2026-07-14 as redundant).
 - Braincells launches a new wired Claude process in the user’s preferred terminal.
 - It resumes/forks the selected session.
 - Use deterministic IDs:
@@ -157,7 +158,9 @@ Keep v1 controls simple:
 
 - Compact → `/compact`
 - Clear → `/clear`
-- Reconnect with controls → fork/resume into WIRED mode
+- On an unwired session, either control forks/resumes into WIRED mode first
+  (RECONNECTING) and queues the command. There is no standalone
+  "wire/reconnect" button — it was removed as redundant (2026-07-14).
 
 Do not implement Stabilize for now. It was considered but intentionally dropped.
 
@@ -184,7 +187,8 @@ If multiple sessions exist:
 
 - Default to “Follow latest.”
 - Manual selection pins a session.
-- Reconnect applies to the selected/pinned session, not blindly latest.
+- The control-triggered fork applies to the selected/pinned session, not
+  blindly latest.
 
 ## Implementation preferences
 

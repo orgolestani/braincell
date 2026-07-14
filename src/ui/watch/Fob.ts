@@ -11,20 +11,20 @@
  */
 import type { SessionInfo } from '../../sessions';
 import type { BraincellsAssessment } from '../../braincells';
-import { activityOf } from '../../activity';
+import { MODE_TITLES, type SessionMode } from '../../mode';
 import { escapeHtml, prettyModel } from '../format';
 
-export function renderFob(session: SessionInfo, assessment: BraincellsAssessment): string {
+export function renderFob(session: SessionInfo, assessment: BraincellsAssessment, mode: SessionMode): string {
   const pct = Math.min(100, (session.contextTokens / session.contextLimit) * 100);
-  const meterTitle = `Context ${Math.round(pct)}% — ${escapeHtml(assessment.label)} · ${escapeHtml(prettyModel(session.model))}`;
+  const meterTitle = `${Math.round(pct)}% context · ${escapeHtml(prettyModel(session.model))}`;
   return `
     <div class="bf" data-heat="${assessment.heat}">
-      <span class="bw-dot" data-activity="${activityOf(session.mtimeMs)}"></span>
+      <span class="bw-dot" data-mode="${mode}" title="${MODE_TITLES[mode]}"></span>
       <div class="bf-gauge" title="${meterTitle}">
         <span class="bf-fill" style="width:${pct.toFixed(0)}%"></span>
       </div>
       <span class="bf-pct">${Math.round(pct)}%</span>
-      <button class="bm-compact bf-crown" type="button" title="Compact context (/compact)"
+      <button class="bm-compact bf-crown" type="button" title="Compact context"
               aria-label="Compact context"></button>
       <button class="bm-expand bf-expand" type="button" title="Expand to the watch"
               aria-label="Expand to the watch">⤢</button>
@@ -35,7 +35,7 @@ export function renderFob(session: SessionInfo, assessment: BraincellsAssessment
 export function renderFobEmpty(): string {
   return `
     <div class="bf" data-heat="ok">
-      <span class="bw-dot" data-activity="stale"></span>
+      <span class="bw-dot" data-mode="watching" title="No sessions detected"></span>
       <div class="bf-gauge" title="No sessions detected"><span class="bf-fill" style="width:0%"></span></div>
       <span class="bf-pct">—</span>
       <button class="bm-expand bf-expand" type="button" title="Expand to the watch"
