@@ -37,7 +37,17 @@
     grid-template-rows: auto 1fr auto;
     overflow: hidden;
   }
-  @media (max-width: 880px) { body { overflow: auto; overflow-x: hidden; } }
+  @media (max-width: 880px) {
+    /* let the page grow with its stacked content instead of being locked to
+       one viewport — otherwise the middle 1fr row overflows and the bottom
+       (watch hint / ticker) gets clipped and can't be scrolled to */
+    html, body { height: auto; min-height: 100%; }
+    body {
+      grid-template-rows: auto auto auto;
+      overflow: visible; overflow-x: hidden;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  }
 
   a { color: var(--brass-hi); }
 
