@@ -6,6 +6,7 @@ import { getSessions } from './sessions';
 import { registerTerminal } from './terminalLauncher';
 import { registerWired } from './wired';
 import { registerShim } from './shim';
+import { startUpdateChecker } from './updateCheck';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -115,6 +116,7 @@ function startDevCheckServer(): void {
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   createWindow();
+  startUpdateChecker();
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) startDevCheckServer();
 });
 
