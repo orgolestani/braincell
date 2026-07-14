@@ -42,7 +42,7 @@ if [ -z "$EXPECTED" ] || [ "$EXPECTED" != "$ACTUAL" ]; then
 fi
 echo "   sha256 ok: $ACTUAL"
 
-echo "⌚ Installing to $DEST…"
+echo "⌚ Installing to ${DEST}…"
 ditto -xk "$TMP/braincells.zip" "$TMP/unpacked"
 APP_NAME="$(basename "$(find "$TMP/unpacked" -maxdepth 1 -name '*.app' | head -n 1)")"
 if [ -z "$APP_NAME" ] || [ "$APP_NAME" = ".app" ]; then
